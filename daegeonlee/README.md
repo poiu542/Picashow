@@ -20,3 +20,8 @@
 
 - 프로젝트 명 PicaShow로 결정
 - openjourney 테스트(text to image)
+
+### 10.18. 수요일
+
+- openjourney 이미지 비율 조절
+- openjourney 라이브러리 뜯어보기
