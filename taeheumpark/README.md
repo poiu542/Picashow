@@ -19,3 +19,8 @@
 - 프로젝트 명 PicaShow로 결정(일정에 따른 배경화면 자동 설정)
 - Jetpack Compose 기초 공부
 - 요구사항 명세서 Version 1 작성
+
+### 10.18. 수요일
+
+- Android Studio로 중간 발표용 MVP 제작 완료
+- Jetpack Compose 기초 공부 진행
