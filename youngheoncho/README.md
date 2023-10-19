@@ -24,3 +24,8 @@
 
 - openjourney 이미지 비율 조절
 - openjourney 프롬프트 학습
+
+### 10.18. 목요일
+
+- openjourney 프롬프트 가이드 학습
+- openjourney 프롬프트 적용 실습
