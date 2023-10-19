@@ -21,3 +21,7 @@
 ### 10.18. 수요일
 - Docker 학습
 - OS(Linux) 학습
+
+### 10.19. 목요일
+- Docker 학습
+- OS(Linux) 학습
