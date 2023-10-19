@@ -25,3 +25,8 @@
 
 - openjourney 이미지 비율 조절
 - openjourney 라이브러리 뜯어보기
+
+### 10.19. 목요일
+
+- openjourney 테스트
+- 다른 모델 사용
