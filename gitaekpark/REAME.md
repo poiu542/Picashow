@@ -14,3 +14,8 @@
 
 - 프로젝트 명 PicaShow로 결정
 - openjourney 테스트(text to image)
+
+### 10.19. 목요일
+
+- 발표 장표 수정
+- 발표 연습
