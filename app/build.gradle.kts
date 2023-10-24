@@ -51,6 +51,8 @@ android {
 
 dependencies {
 
+    // workManager
+    implementation ("androidx.work:work-runtime-ktx:2.7.0")
     // navigation
     implementation("androidx.navigation:navigation-compose:2.5.3")
 
