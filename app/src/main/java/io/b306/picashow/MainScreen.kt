@@ -34,11 +34,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
+import io.b306.picashow.ui.components.TopAppBar
 import io.b306.picashow.ui.page.MainPage
 
 @Composable
 fun MainScreen(navController: NavHostController) {
-    var title by remember { mutableStateOf("Schedule") }
+    var title by remember { mutableStateOf("") }
 
     val updatedNavController = rememberUpdatedState(navController)
 
@@ -63,7 +64,7 @@ fun MainScreen(navController: NavHostController) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            NavHost(navController = navController, startDestination = "firstPage") {
+            NavHost(navController = navController, startDestination = "secondPage") {
                 composable("firstPage") { FirstPage() }
                 composable("secondPage") { SecondPage() }
                 composable("thirdPage") { ThirdPage() }
@@ -77,7 +78,7 @@ fun MainScreen(navController: NavHostController) {
                 ),
                 BottomNavigationItem(
                     icon = { Image(painter = painterResource(id = R.drawable.today), contentDescription = null) },
-                    selected = navController.currentDestination?.route == "secondPage",
+                    selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
                     onClick = { navController.navigate("secondPage") }
                 ),
                 BottomNavigationItem(
@@ -113,14 +114,4 @@ fun ThirdPage() {
 
 
 
-@Composable
-fun TopAppBar(title : String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Icon(Icons.Default.List, contentDescription = null)
-        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        Icon(Icons.Default.Add, contentDescription = null)
-    }
-}
+
