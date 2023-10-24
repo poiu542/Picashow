@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "io.b306.picashow"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -61,6 +61,9 @@ dependencies {
     implementation("androidx.compose.material:material:1.x.x")
     implementation("androidx.compose.ui:ui-tooling:1.x.x")
     implementation("androidx.navigation:navigation-compose:2.x.x")
+
+    // java.time.YearMonth - API 26부터, 그 미만은 ThreeTenABP 라이브러리 사용
+//    implementation("com.jakewharton.threetenabp:threetenabp:1.3.1")
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
