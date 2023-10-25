@@ -8,11 +8,10 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 
 class WallpaperChangeWorker(appContext: Context, workerParams: WorkerParameters): Worker(appContext, workerParams) {
+
     override fun doWork(): Result {
-        // 배경화면 변경 로직을 여기에 작성하세요.
-        // 예시:
         changeWallpaper()
-        Log.d("바뀌어요","jex")
+        Log.d("바뀌어요","바탕화면 변경")
         return Result.success()
     }
 
