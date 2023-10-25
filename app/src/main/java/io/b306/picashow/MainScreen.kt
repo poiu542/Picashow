@@ -35,6 +35,7 @@ import androidx.navigation.compose.composable
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
 import io.b306.picashow.ui.components.TopAppBar
+import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 
 @Composable
@@ -109,7 +110,7 @@ fun SecondPage() {
 
 @Composable
 fun ThirdPage() {
-    // TODO 세 번째 귀태귀 그림 일기 페이지
+    DiaryPage()
 }
 
 
