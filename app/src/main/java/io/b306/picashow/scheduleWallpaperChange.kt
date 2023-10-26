@@ -1,9 +1,10 @@
+package io.b306.picashow
+
 import android.content.Context
 import android.util.Log
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import io.b306.picashow.WallpaperChangeWorker
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -17,8 +18,8 @@ fun scheduleWallpaperChange(context: Context) {
             time + (24 - getCurrentHour())
         }
 
-        Log.d("delay",getCurrentHour().toString());
-        Log.d("delay",delay.toString());
+        Log.d("delay", getCurrentHour().toString())
+        Log.d("delay",delay.toString())
         val workRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
             .setInitialDelay(20L*time, TimeUnit.SECONDS)
             .build()

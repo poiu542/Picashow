@@ -1,6 +1,7 @@
 package io.b306.picashow
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
 import io.b306.picashow.ui.components.TopAppBar
 import io.b306.picashow.ui.page.MainPage
+import io.b306.picashow.ui.theme.MainBackground
 
 @Composable
 fun MainScreen(navController: NavHostController) {
@@ -54,44 +57,65 @@ fun MainScreen(navController: NavHostController) {
             }
         }
     }
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(MainBackground)  // 전체 배경색을 설정합니다.
     ) {
-        TopAppBar(title)
-        Spacer(modifier = Modifier.height(16.dp))
-        Box(
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            NavHost(navController = navController, startDestination = "secondPage") {
-                composable("firstPage") { FirstPage() }
-                composable("secondPage") { SecondPage() }
-                composable("thirdPage") { ThirdPage() }
-            }
+            TopAppBar(title)
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                NavHost(navController = navController, startDestination = "secondPage") {
+                    composable("firstPage") { FirstPage() }
+                    composable("secondPage") { SecondPage() }
+                    composable("thirdPage") { ThirdPage() }
+                }
 
-            val bottomNavItems = listOf(
-                BottomNavigationItem(
-                    icon = { Image(painter = painterResource(id = R.drawable.calender), contentDescription = null) },
-                    selected = navController.currentDestination?.route == "firstPage",
-                    onClick = { navController.navigate("firstPage") }
-                ),
-                BottomNavigationItem(
-                    icon = { Image(painter = painterResource(id = R.drawable.today), contentDescription = null) },
-                    selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
-                    onClick = { navController.navigate("secondPage") }
-                ),
-                BottomNavigationItem(
-                    icon = { Image(painter = painterResource(id = R.drawable.paintdiary), contentDescription = null) },
-                    selected = navController.currentDestination?.route == "thirdPage",
-                    onClick = { navController.navigate("thirdPage") }
+                val bottomNavItems = listOf(
+                    BottomNavigationItem(
+                        icon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.calender),
+                                contentDescription = null
+                            )
+                        },
+                        selected = navController.currentDestination?.route == "firstPage",
+                        onClick = { navController.navigate("firstPage") }
+                    ),
+                    BottomNavigationItem(
+                        icon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.today),
+                                contentDescription = null
+                            )
+                        },
+                        selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
+                        onClick = { navController.navigate("secondPage") }
+                    ),
+                    BottomNavigationItem(
+                        icon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.paintdiary),
+                                contentDescription = null
+                            )
+                        },
+                        selected = navController.currentDestination?.route == "thirdPage",
+                        onClick = { navController.navigate("thirdPage") }
+                    )
                 )
-            )
 
-            BottomNavigation(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                items = bottomNavItems
-            )
+                BottomNavigation(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    items = bottomNavItems
+                )
+            }
         }
     }
 }

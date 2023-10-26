@@ -1,28 +1,41 @@
 package io.b306.picashow.ui.page
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.b306.picashow.ui.components.ShowDatePicker
+import io.b306.picashow.ui.components.ShowTimePicker
 import java.time.YearMonth
 import java.util.Calendar
 
-class MainPageUI {
-}
+//class MainPageUI {
+//}
 
 @Composable
 fun MainPage() {
@@ -31,23 +44,28 @@ fun MainPage() {
     val currentMonth = today.get(Calendar.MONTH) + 1 // Java의 Calendar MONTH는 0부터 시작합니다.
     val currentDay = today.get(Calendar.DAY_OF_MONTH)
 
+    // 선택된 날짜를 관리하는 상태
+    var selectedDay by remember { mutableIntStateOf(currentDay) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Calendar(currentYear, currentMonth, currentDay)
+        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay ->
+            selectedDay = newSelectedDay
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Tasks()
     }
 }
 
 @Composable
-fun Calendar(year: Int, month: Int, startDay: Int) {
+fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int) -> Unit) {
     val daysInMonth = daysInMonth(year, month)
     val daysToShow = mutableListOf<Int?>()
 
-    for (i in 0 until 7) {
+    for (i in 0 until 30) {
         val currentDay = startDay + i
         if (currentDay <= daysInMonth) {
             daysToShow.add(currentDay)
@@ -57,49 +75,61 @@ fun Calendar(year: Int, month: Int, startDay: Int) {
     }
     val dayNames = getWeekDayNamesBasedOnStartDay(year, month, startDay)
 
-    Text(text = monthToName(month), fontWeight = FontWeight.Bold, fontSize = 20.sp)
+    Text(text = monthToName(month), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
     Spacer(modifier = Modifier.height(8.dp))
+    ShowTimePicker()
+    ShowDatePicker()
 
-    // 요일 이름 표시
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        dayNames.forEach { dayName ->
-            Text(text = dayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-        }
-    }
-    Spacer(modifier = Modifier.height(4.dp))
+    val lazyListState = rememberLazyListState()
 
-    // 날짜 표시
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+    LazyRow(
+        state = lazyListState,
+        contentPadding = PaddingValues(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        daysToShow.forEach { day ->
-            DayItem(day = day)
+        itemsIndexed(daysToShow) { index, day ->
+            DayWithBackground(day, dayNames[index], day == selectedDay) {
+                day?.let {
+                    onDaySelected(it)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun DayItem(day: Int?) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun DayWithBackground(day: Int?, dayName: String, isSelected: Boolean, onDayClick: () -> Unit) {
+    val backgroundColor = if (isSelected) Color.White else Color.Transparent
+    val textColor = if (isSelected) Color.Black else Color.White
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+
+            .background(backgroundColor)
+            .clickable(onClick = onDayClick)
     ) {
-        Text(text = day?.toString() ?: "", fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Text(text = dayName, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = day?.toString() ?: "", fontWeight = FontWeight.Bold, color = textColor)
+        }
     }
 }
 
 fun getWeekDayNamesBasedOnStartDay(year: Int, month: Int, startDay: Int): List<String> {
     val calendar = Calendar.getInstance()
-    calendar.set(year, month - 1, startDay)  // month - 1 because Java Calendar's months start from 0
+    calendar.set(year, month - 1, startDay)
 
     val dayNames = mutableListOf<String>()
+    val repeatCount = 30 // 30번 반복
 
-    for (i in 0..6) {
+    for (j in 0 until repeatCount) {
         val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
         dayNames.add(
             when (dayOfWeek) {
@@ -113,7 +143,7 @@ fun getWeekDayNamesBasedOnStartDay(year: Int, month: Int, startDay: Int): List<S
                 else -> ""
             }
         )
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
+        calendar.add(Calendar.DAY_OF_MONTH, 1) // 다음 날짜로 이동
     }
 
     return dayNames
@@ -145,7 +175,7 @@ fun monthToName(month: Int): String {
 
 @Composable
 fun Tasks() {
-    Text(text = "Today's Tasks", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+    Text(text = "Today's Tasks", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
     Spacer(modifier = Modifier.height(8.dp))
     TaskItem(taskName = "User Interviews", time = "16:00 - 18:30")
     Spacer(modifier = Modifier.height(8.dp))
@@ -168,7 +198,7 @@ fun TaskItem(taskName: String, time: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = taskName, modifier = Modifier.padding(8.dp))
-        Text(text = time, modifier = Modifier.padding(8.dp))
+        Text(text = taskName, modifier = Modifier.padding(8.dp), color = Color.White)
+        Text(text = time, modifier = Modifier.padding(8.dp), color = Color.White)
     }
 }
