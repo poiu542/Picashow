@@ -50,13 +50,18 @@ android {
 }
 
 dependencies {
-
+    //retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    //Gson converter
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    //logging
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    //coil
     implementation ("io.coil-kt:coil-compose:1.4.0")
     // workManager
     implementation ("androidx.work:work-runtime-ktx:2.7.0")
     // navigation
     implementation("androidx.navigation:navigation-compose:2.5.3")
-
     // fragment
     implementation("androidx.compose.ui:ui:1.x.x")
     implementation("androidx.compose.material:material:1.x.x")
