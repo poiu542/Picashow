@@ -38,7 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import io.b306.picashow.R
-import scheduleWallpaperChange
+import io.b306.picashow.scheduleWallpaperChange
 import java.util.Calendar
 
 @Composable
