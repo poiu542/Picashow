@@ -70,7 +70,9 @@ fun MainScreen(navController: NavHostController) {
             TopAppBar(title)
             Spacer(modifier = Modifier.height(16.dp))
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
             ) {
                 NavHost(navController = navController, startDestination = "secondPage") {
                     composable("firstPage") { FirstPage() }
@@ -78,44 +80,43 @@ fun MainScreen(navController: NavHostController) {
                     composable("thirdPage") { ThirdPage() }
                 }
 
-                val bottomNavItems = listOf(
-                    BottomNavigationItem(
-                        icon = {
-                            Image(
-                                painter = painterResource(id = R.drawable.calender),
-                                contentDescription = null
-                            )
-                        },
-                        selected = navController.currentDestination?.route == "firstPage",
-                        onClick = { navController.navigate("firstPage") }
-                    ),
-                    BottomNavigationItem(
-                        icon = {
-                            Image(
-                                painter = painterResource(id = R.drawable.today),
-                                contentDescription = null
-                            )
-                        },
-                        selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
-                        onClick = { navController.navigate("secondPage") }
-                    ),
-                    BottomNavigationItem(
-                        icon = {
-                            Image(
-                                painter = painterResource(id = R.drawable.paintdiary),
-                                contentDescription = null
-                            )
-                        },
-                        selected = navController.currentDestination?.route == "thirdPage",
-                        onClick = { navController.navigate("thirdPage") }
-                    )
-                )
 
-                BottomNavigation(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    items = bottomNavItems
-                )
             }
+            val bottomNavItems = listOf(
+                BottomNavigationItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.calender),
+                            contentDescription = null
+                        )
+                    },
+                    selected = navController.currentDestination?.route == "firstPage",
+                    onClick = { navController.navigate("firstPage") }
+                ),
+                BottomNavigationItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.today),
+                            contentDescription = null
+                        )
+                    },
+                    selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
+                    onClick = { navController.navigate("secondPage") }
+                ),
+                BottomNavigationItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.paintdiary),
+                            contentDescription = null
+                        )
+                    },
+                    selected = navController.currentDestination?.route == "thirdPage",
+                    onClick = { navController.navigate("thirdPage") }
+                )
+            )
+            BottomNavigation(
+                items = bottomNavItems
+            )
         }
     }
 }
@@ -135,7 +136,3 @@ fun SecondPage() {
 fun ThirdPage() {
     DiaryPage()
 }
-
-
-
-
