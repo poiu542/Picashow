@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -39,7 +43,7 @@ fun firstPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(1.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -48,8 +52,35 @@ fun firstPage() {
             ShowDatePicker()
             ShowTimePicker()
         }
-        ImageFromUrl()
+
     }
+    val imageUrls = listOf(
+        "https://mblogthumb-phinf.pstatic.net/MjAxODAxMjFfMTMy/MDAxNTE2NTQyOTA0Mzk3.sodrPAj7QOabX0S6tKObbbAGo9xXkX3QiauDEU0ShTgg.olNXD3GdYDF3JH9C36dnI1NUuuJdcfv61uBTCVR2c1Eg.JPEG.knicjin/20180121-010.jpg?type=w800",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://mblogthumb-phinf.pstatic.net/MjAxODA1MTVfMjQw/MDAxNTI2MzcwMTM0OTgw.Zk3zj1yTkJoDexVPjel7I7x_BqBepWCHEeulzInKjB4g.uqdvjH0gfA0_cj5Svi6zLCAzb-d0HzSLnDPCDyrgas8g.JPEG.nanumi_/%ED%95%B8%EB%93%9C%ED%8F%B0_%EB%B0%B0%EA%B2%BD%ED%99%94%EB%A9%B416.jpg?type=w800",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
+        "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
+        "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg"
+    )
+    ImageListFromUrls(imageUrls)
 }
 
 @Composable
@@ -126,6 +157,42 @@ fun ImageFromUrl() {
         }
     )
 }
+@Composable
+fun ImageListFromUrls(imageUrls: List<String>) {
+    val context = LocalContext.current
+
+    Column(
+        Modifier
+            .padding(1.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        for (i in imageUrls.indices step 3) {
+            Row(Modifier.fillMaxWidth()) {
+                for (j in i until minOf(i + 3, imageUrls.size)) {
+                    val imageUrl = imageUrls[j]
+
+                    Image(
+                        painter = rememberImagePainter(
+                            data = imageUrl,
+                            builder = {
+                                crossfade(true)
+                                placeholder(R.drawable.waiting_image)
+                            }
+                        ),
+                        contentDescription = "인공지능이 생성한 바탕화면",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp)
+                            .clickable {
+                                downloadImage(context, imageUrl, "Image Title", "Downloading...")
+                            }
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 fun downloadImage(context: Context, url: String, title: String, description: String) {
     val request = DownloadManager.Request(Uri.parse(url))
