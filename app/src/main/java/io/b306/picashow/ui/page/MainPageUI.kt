@@ -1,5 +1,7 @@
 package io.b306.picashow.ui.page
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -149,6 +151,7 @@ fun getWeekDayNamesBasedOnStartDay(year: Int, month: Int, startDay: Int): List<S
     return dayNames
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun daysInMonth(year: Int, month: Int): Int {
     // API 레벨 26부터 사용 가능
     val yearMonth = YearMonth.of(year, month)

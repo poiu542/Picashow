@@ -34,14 +34,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                ShowDatePicker()
-                ShowTimePicker()
-                scheduleWallpaperChange(this@MainActivity)
-            }
             Surface(color = MaterialTheme.colors.background) {
                 val navController = rememberNavController()
                 MainScreen(navController = navController)
