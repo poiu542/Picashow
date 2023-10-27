@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -48,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -58,18 +60,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import coil.compose.rememberImagePainter
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.b306.picashow.R
+import io.b306.picashow.WallpaperChangeWorker
 import io.b306.picashow.scheduleWallpaperChange
 import java.util.Calendar
 
 @Composable
 fun firstPage() {
     // TODO 첫번째 캘린더 - 두현이 페이지
-    scheduleWallpaperChange(LocalContext.current);
+//    scheduleWallpaperChange(LocalContext.current);
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -213,31 +220,85 @@ fun ImageListFromUrls(imageUrls: List<String>) {
     val pagerState = rememberPagerState(pageCount = imageUrls.size)
 
     if (showDownloadDialog) {
-        // 이미지 저장 다이얼로그 표시 로직
         Dialog(
-            onDismissRequest = {
-                showDownloadDialog = false
-            },
+            onDismissRequest = { showDownloadDialog = false },
             properties = DialogProperties(
-                usePlatformDefaultWidth = false
+                usePlatformDefaultWidth = false // experimental
             )
         ) {
-            Surface(modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-
-
-
-
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .background(Color.Transparent)
+                    .clickable { showDownloadDialog = false }
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black),
-                )
+                        .align(Alignment.BottomCenter)
+                        .height(230.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.Black)
+                        .clickable {}
+                ) {
+                    Divider(
+                        color = Color.Gray,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .width(150.dp)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top=40.dp, start = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(30.dp)
+                    ) {
+                        Text(
+                            fontSize = 20.sp,
+                            text = "\uD83D\uDCF1  배경화면으로 설정",
+                            color = Color.White,
+                            modifier = Modifier.clickable {
+                                val imageUrl = selectedImageUrl // 변경하려는 이미지의 URL
+
+                                val inputData = workDataOf("imageUrl" to imageUrl)
+
+                                val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
+                                    .setInputData(inputData)
+                                    .build()
+
+                                WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
+                                Toast.makeText(context, "해당 이미지가 배경화면으로 설정되었습니다.", Toast.LENGTH_SHORT).show()
+                            },
+                        )
+
+                        Text(
+                            fontSize = 20.sp,
+                            text = "\uD83D\uDD12  잠금화면으로 설정",
+                            modifier = Modifier.clickable {
+                                // 잠금화면으로 설정하는 코드를 여기에 작성하세요
+                            },
+                            color = Color.White
+                        )
+
+                        Text(
+                            fontSize = 20.sp,
+                            text = "\uD83D\uDDBC️  내 갤러리에 저장",
+                            modifier = Modifier.clickable {
+                                // 저장하는 코드를 여기에 작성하세요
+                                downloadImage(context, selectedImageUrl, "배경 화면 다운로드 중", "Downloading images..")
+                                Toast.makeText(context, "다운로드가 진행중입니다.", Toast.LENGTH_SHORT).show()
+                            },
+                            color = Color.White
+                        )
+                    }
+
+
+                }
             }
         }
-
     }
 
     if (showDialog) {
@@ -269,7 +330,7 @@ fun ImageListFromUrls(imageUrls: List<String>) {
                             contentDescription = null,
                             modifier = Modifier
                                 .size(120.dp)
-                                .clickable { showDownloadDialog = true;/* 클릭 이벤트 처리 로직 */ }
+                                .clickable { showDownloadDialog = true; selectedImageUrl = imageUrls[page];}
                                 .align(Alignment.BottomCenter)
                                 .padding(bottom = 50.dp)
                         )
@@ -305,14 +366,10 @@ fun ImageListFromUrls(imageUrls: List<String>) {
                             .fillMaxHeight()
                             .padding(5.dp)
                             .clip(shape = RoundedCornerShape(8.dp))
-
-
                             .clickable {
                                 selectedImageUrl = imageUrl
                                 selectedImageIndex = j
                                 showDialog = true
-
-//                                downloadImage(context, imageUrl, "Image Title", "Downloading...")
                             }
                     )
                 }
