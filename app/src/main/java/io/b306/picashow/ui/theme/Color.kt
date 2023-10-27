@@ -12,3 +12,10 @@ val Pink40 = Color(0xFF7D5260)
 
 // background
 val MainBackground = Color(0xFF010101)
+val NoneSelectBackground = Color(0xFF263238)
+
+// placeholder
+val PlaceDefault = Color(0xFF989898)
+
+// cursor
+val TextFieldCursor = Color(0xFFDFDFDF)

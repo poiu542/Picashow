@@ -1,6 +1,7 @@
 package io.b306.picashow.ui.page
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,11 +15,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,12 +33,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.b306.picashow.ui.components.ShowDatePicker
 import io.b306.picashow.ui.components.ShowTimePicker
+import io.b306.picashow.ui.theme.NoneSelectBackground
 import java.time.YearMonth
 import java.util.Calendar
 
@@ -48,14 +57,24 @@ fun MainPage() {
 
     // 선택된 날짜를 관리하는 상태
     var selectedDay by remember { mutableIntStateOf(currentDay) }
+    var selectedMonth by remember { mutableIntStateOf(currentMonth) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay ->
+        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal ->
             selectedDay = newSelectedDay
+            selectedMonth = if(selectedDay <= currentDay) {
+                selectedMonthLocal + 1
+            } else {
+                selectedMonthLocal
+            }
+            Log.e("SelectedDay", "Selected day is: $selectedMonth/$selectedDay")  // 로그로 선택한 날짜 출력
+
+            // TODO selectedMonth, Day를 사용해서 그 날짜에 해당하는 Task를 Room에서 불러오면 됨(코루틴 비둘기 써서)
+
         }
         Spacer(modifier = Modifier.height(16.dp))
         Tasks()
@@ -63,7 +82,7 @@ fun MainPage() {
 }
 
 @Composable
-fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int) -> Unit) {
+fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int, Int) -> Unit) {
     val daysInMonth = daysInMonth(year, month)
     val daysToShow = mutableListOf<Int?>()
 
@@ -93,7 +112,7 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
         itemsIndexed(daysToShow) { index, day ->
             DayWithBackground(day, dayNames[index], day == selectedDay) {
                 day?.let {
-                    onDaySelected(it)
+                    onDaySelected(it, month)
                 }
             }
         }
@@ -102,13 +121,12 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
 
 @Composable
 fun DayWithBackground(day: Int?, dayName: String, isSelected: Boolean, onDayClick: () -> Unit) {
-    val backgroundColor = if (isSelected) Color.White else Color.Transparent
+    val backgroundColor = if (isSelected) Color.White else NoneSelectBackground
     val textColor = if (isSelected) Color.Black else Color.White
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-
             .background(backgroundColor)
             .clickable(onClick = onDayClick)
     ) {
@@ -151,7 +169,6 @@ fun getWeekDayNamesBasedOnStartDay(year: Int, month: Int, startDay: Int): List<S
     return dayNames
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun daysInMonth(year: Int, month: Int): Int {
     // API 레벨 26부터 사용 가능
     val yearMonth = YearMonth.of(year, month)
@@ -178,30 +195,55 @@ fun monthToName(month: Int): String {
 
 @Composable
 fun Tasks() {
-    Text(text = "Today's Tasks", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-    Spacer(modifier = Modifier.height(8.dp))
-    TaskItem(taskName = "User Interviews", time = "16:00 - 18:30")
-    Spacer(modifier = Modifier.height(8.dp))
-    TaskItem(taskName = "User Interviews", time = "16:00 - 18:30")
-    Spacer(modifier = Modifier.height(8.dp))
-    TaskItem(taskName = "User Interviews", time = "16:00 - 18:30")
-    Spacer(modifier = Modifier.height(8.dp))
-    TaskItem(taskName = "User Interviews", time = "16:00 - 18:30")
-    Spacer(modifier = Modifier.height(8.dp))
-    // Add tasks items here...
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp)
+    ) {
+        item {
+            Text(
+                text = "Today's Tasks",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        items(5) { // 5개의 TaskItem을 렌더링. 필요한 개수에 따라 변경 가능
+            TaskItem(taskName = "기택아 Room 빨리 만들어줘", time = "16:00 - 18:30")
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
 }
 
 @Composable
 fun TaskItem(taskName: String, time: String) {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .background(color = Color.Gray, shape = RoundedCornerShape(8.dp)),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF00A7A7), Color(0xFF2C2C2C)),
+                    startY = 0f,
+                    endY = 8f
+                ),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Text(text = taskName, modifier = Modifier.padding(8.dp), color = Color.White)
-        Text(text = time, modifier = Modifier.padding(8.dp), color = Color.White)
+        Column {
+            Text(
+                text = taskName,
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = time,
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                color = Color.White
+            )
+        }
     }
 }

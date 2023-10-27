@@ -1,5 +1,6 @@
 package io.b306.picashow.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TopAppBar(title : String) {
+fun TopAppBar(title : String, onAddClick: (() -> Unit)? = null) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -38,7 +39,9 @@ fun TopAppBar(title : String) {
             Icons.Default.Add,
             contentDescription = null,
             tint = Color.White,
-            modifier = Modifier.offset(y = 10.dp)
+            modifier = Modifier
+                .offset(y = 10.dp)
+                .clickable(onClick = { onAddClick?.invoke() })  // 클릭 리스너 추가
         )
     }
 }

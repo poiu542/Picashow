@@ -35,6 +35,7 @@ import androidx.navigation.compose.composable
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
 import io.b306.picashow.ui.components.TopAppBar
+import io.b306.picashow.ui.page.AddSchedulePage
 import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
@@ -44,6 +45,7 @@ import io.b306.picashow.ui.page.firstPage
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
 
+    var showAppBarAndNavBar by remember { mutableStateOf(true) }  // 상태 변수 추가
     val updatedNavController = rememberUpdatedState(navController)
 
     // NavController의 back stack entry를 관찰
@@ -55,8 +57,10 @@ fun MainScreen(navController: NavHostController) {
                 "thirdPage" -> "Diary"
                 else -> "Schedule"
             }
+            showAppBarAndNavBar = destination.route != "addSchedulePage"
         }
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -67,17 +71,34 @@ fun MainScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            TopAppBar(title)
+
+            // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
+            if (showAppBarAndNavBar) {
+                TopAppBar(
+                    title = title,
+                    onAddClick = {
+                        if(navController.currentDestination?.route == "secondPage") {
+                            navController.navigate("addSchedulePage")
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
             ) {
                 NavHost(navController = navController, startDestination = "secondPage") {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage() }
                     composable("thirdPage") { ThirdPage() }
+                    composable("addSchedulePage") { AddSchedulePage() }
                 }
 
+
+            }
                 val bottomNavItems = listOf(
                     BottomNavigationItem(
                         icon = {
@@ -110,9 +131,8 @@ fun MainScreen(navController: NavHostController) {
                         onClick = { navController.navigate("thirdPage") }
                     )
                 )
-
+            if (showAppBarAndNavBar) {
                 BottomNavigation(
-                    modifier = Modifier.align(Alignment.BottomCenter),
                     items = bottomNavItems
                 )
             }
