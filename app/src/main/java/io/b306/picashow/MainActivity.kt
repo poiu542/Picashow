@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import io.b306.picashow.entity.Diary
 import io.b306.picashow.ui.components.ShowDatePicker
 import io.b306.picashow.ui.components.ShowTimePicker
 import java.util.Calendar
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             Surface(color = MaterialTheme.colors.background) {
                 val navController = rememberNavController()
