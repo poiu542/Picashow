@@ -50,6 +50,7 @@ android {
 }
 
 dependencies {
+    implementation ("com.google.accompanist:accompanist-pager:0.18.0")
     //retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     //Gson converter
