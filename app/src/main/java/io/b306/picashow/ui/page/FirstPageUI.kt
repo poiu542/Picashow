@@ -6,37 +6,62 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberImagePainter
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 import io.b306.picashow.R
 import io.b306.picashow.scheduleWallpaperChange
 import java.util.Calendar
@@ -50,12 +75,14 @@ fun firstPage() {
             .fillMaxSize()
             .padding(1.dp)
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ShowDatePicker()
-            ShowTimePicker()
+//            ShowDatePicker()
+//            ShowTimePicker()
         }
         val imageUrls = listOf(
             "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B",
@@ -85,7 +112,6 @@ fun firstPage() {
             "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99DBC5375AC8CA3328",
         )
         ImageListFromUrls(imageUrls)
-
     }
 
 }
@@ -98,6 +124,7 @@ fun ShowDatePicker() {
     Icon(
         Icons.Default.DateRange,
         contentDescription = "Open Date Picker",
+        tint = Color.White,
         modifier = Modifier.clickable {
             val calendar: Calendar = Calendar.getInstance()
             val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -121,10 +148,14 @@ fun ShowDatePicker() {
 fun ShowTimePicker() {
     val context = LocalContext.current
     var selectedTime by remember { mutableStateOf("") }
+    Text(text = "jjex",
+         color = Color.White
+    )
 
     Icon(
         Icons.Rounded.Build,
         contentDescription = "Open Time Picker",
+        tint = Color.White,
         modifier = Modifier.clickable {
             val calendar: Calendar = Calendar.getInstance()
             val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
@@ -160,14 +191,96 @@ fun ImageFromUrl() {
         modifier = Modifier
             .size(300.dp)
             .clickable {
-            downloadImage(context, imageUrl, "Image Title", "Downloading...")
-        }
+
+
+                downloadImage(context, imageUrl, "Image Title", "Downloading...")
+            }
     )
 }
 
+
+@Composable
+fun dialog() {}
+
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ImageListFromUrls(imageUrls: List<String>) {
     val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    var showDownloadDialog by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf("") }
+    var selectedImageIndex by remember { mutableStateOf(0) }
+    val pagerState = rememberPagerState(pageCount = imageUrls.size)
+
+    if (showDownloadDialog) {
+        // 이미지 저장 다이얼로그 표시 로직
+        Dialog(
+            onDismissRequest = {
+                showDownloadDialog = false
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Surface(modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+
+
+
+
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                )
+            }
+        }
+
+    }
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false // experimental
+            )
+        ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                ) {
+                    HorizontalPager(state = pagerState) { page ->
+                        Image(
+                            painter = rememberImagePainter(
+                                data = imageUrls[page],
+                                builder = { crossfade(true) }
+                            ),
+                            contentDescription = "인공지능이 생성한 바탕화면",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.download),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clickable { showDownloadDialog = true;/* 클릭 이벤트 처리 로직 */ }
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 50.dp)
+                        )
+                    }
+                    LaunchedEffect(Unit) {
+                        pagerState.scrollToPage(selectedImageIndex)
+                    }
+                }
+            }
+        }
+    }
 
     Column(
         Modifier
@@ -188,14 +301,17 @@ fun ImageListFromUrls(imageUrls: List<String>) {
                         ),
                         contentDescription = "인공지능이 생성한 바탕화면",
                         modifier = Modifier
-                            .size(120.dp,200.dp)
+                            .size(120.dp, 200.dp)
                             .fillMaxHeight()
                             .padding(5.dp)
                             .clip(shape = RoundedCornerShape(8.dp))
 
 
-
                             .clickable {
+                                selectedImageUrl = imageUrl
+                                selectedImageIndex = j
+                                showDialog = true
+
 //                                downloadImage(context, imageUrl, "Image Title", "Downloading...")
                             }
                     )
