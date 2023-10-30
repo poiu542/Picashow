@@ -10,16 +10,15 @@ import kotlinx.coroutines.launch
 
 class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
 
-    // MutableLiveData 또는 StateFlow를 사용하여 UI에 변화를 알릴 수 있음
     private val _myInfo = MutableLiveData<Diary?>()
     val myInfo: LiveData<Diary?> get() = _myInfo
 
-//    fun fetchMyInfo(id: Int) {
-//        viewModelScope.launch {
-//            val result: Diary? =
-//                repository.fetchExerciseRecommendById(id).firstOrNull()
-//            _myInfo.value = result
-//        }
-//    }
-
+    // Diary를 저장하는 함수
+    fun saveDiary(diary: Diary) {
+        viewModelScope.launch {
+            // Diary를 저장하고 저장된 Diary 객체를 _myInfo LiveData에 할당
+            val savedDiary = repository.insert(diary)
+            _myInfo.value = diary
+        }
+    }
 }
