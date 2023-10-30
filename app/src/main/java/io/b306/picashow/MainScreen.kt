@@ -97,45 +97,79 @@ fun MainScreen(navController: NavHostController) {
                     composable("addSchedulePage") { AddSchedulePage() }
                 }
 
-
+//            }
+//                val bottomNavItems = listOf(
+//                    BottomNavigationItem(
+//                        icon = {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.calender),
+//                                contentDescription = null
+//                            )
+//                        },
+//                        selected = navController.currentDestination?.route == "firstPage",
+//                        onClick = { navController.navigate("firstPage") }
+//                    ),
+//                    BottomNavigationItem(
+//                        icon = {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.today),
+//                                contentDescription = null
+//                            )
+//                        },
+//                        selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
+//                        onClick = { navController.navigate("secondPage") }
+//                    ),
+//                    BottomNavigationItem(
+//                        icon = {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.paintdiary),
+//                                contentDescription = null
+//                            )
+//                        },
+//                        selected = navController.currentDestination?.route == "thirdPage",
+//                        onClick = { navController.navigate("thirdPage") }
+//                    )
+//                )
+//            if (showAppBarAndNavBar) {
+//                BottomNavigation(
+//                    items = bottomNavItems
+//                )
             }
-                val bottomNavItems = listOf(
-                    BottomNavigationItem(
-                        icon = {
-                            Image(
-                                painter = painterResource(id = R.drawable.calender),
-                                contentDescription = null
-                            )
-                        },
-                        selected = navController.currentDestination?.route == "firstPage",
-                        onClick = { navController.navigate("firstPage") }
-                    ),
-                    BottomNavigationItem(
-                        icon = {
-                            Image(
-                                painter = painterResource(id = R.drawable.today),
-                                contentDescription = null
-                            )
-                        },
-                        selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
-                        onClick = { navController.navigate("secondPage") }
-                    ),
-                    BottomNavigationItem(
-                        icon = {
-                            Image(
-                                painter = painterResource(id = R.drawable.paintdiary),
-                                contentDescription = null
-                            )
-                        },
-                        selected = navController.currentDestination?.route == "thirdPage",
-                        onClick = { navController.navigate("thirdPage") }
-                    )
+            val bottomNavItems = listOf(
+                BottomNavigationItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.calender),
+                            contentDescription = null
+                        )
+                    },
+                    selected = navController.currentDestination?.route == "firstPage",
+                    onClick = { navController.navigate("firstPage") }
+                ),
+                BottomNavigationItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.today),
+                            contentDescription = null
+                        )
+                    },
+                    selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
+                    onClick = { navController.navigate("secondPage") }
+                ),
+                BottomNavigationItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.paintdiary),
+                            contentDescription = null
+                        )
+                    },
+                    selected = navController.currentDestination?.route == "thirdPage",
+                    onClick = { navController.navigate("thirdPage") }
                 )
-            if (showAppBarAndNavBar) {
-                BottomNavigation(
-                    items = bottomNavItems
-                )
-            }
+            )
+            BottomNavigation(
+                items = bottomNavItems
+            )
         }
     }
 }
@@ -155,7 +189,3 @@ fun SecondPage() {
 fun ThirdPage() {
     DiaryPage()
 }
-
-
-
-

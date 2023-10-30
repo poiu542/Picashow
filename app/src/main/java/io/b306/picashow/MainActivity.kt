@@ -8,15 +8,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
-import io.b306.picashow.ui.page.AddSchedulePage
-import io.b306.picashow.ui.theme.PicaShowTheme
-import io.b306.picashow.ui.theme.Pink80
-import io.b306.picashow.ui.theme.PurpleGrey80
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             Surface(color = MaterialTheme.colors.background) {
                 val navController = rememberNavController()
