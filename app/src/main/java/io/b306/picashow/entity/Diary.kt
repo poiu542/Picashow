@@ -9,8 +9,9 @@ import java.util.Date
 @Entity(tableName = "diary")
 @TypeConverters(Converters::class)
 data class Diary (
-    @PrimaryKey(autoGenerate = true) val diarySeq : Long? = 0L,
+    @PrimaryKey(autoGenerate = true) val diarySeq : Long?,
     val date : Date?,
     val title : String?,
     val content : String?,
+    val url : String?
     )

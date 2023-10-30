@@ -13,20 +13,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,16 +33,32 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberImagePainter
 import io.b306.picashow.R
+import io.b306.picashow.database.AppDatabase
+import io.b306.picashow.entity.Diary
+import io.b306.picashow.repository.DiaryRepository
+import io.b306.picashow.viewmodel.DiaryViewModel
+import io.b306.picashow.viewmodel.DiaryViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DiaryPageUI {
-}
-
 @Composable
 fun DiaryPage() {
+    // 의존성 주입
+    val context = LocalContext.current
+
+    val diaryDao = AppDatabase.getDatabase(context).diaryDao()
+    val repository = DiaryRepository(diaryDao)
+    val viewModelFactory = DiaryViewModelFactory(repository)
+
+    val viewModel = viewModel<DiaryViewModel>(
+        factory = viewModelFactory
+    )
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
@@ -53,17 +68,20 @@ fun DiaryPage() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            PaintDiaryTopAppBar()
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp)
+
+            );val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+
+            val painter = rememberImagePainter(data = imageUrl)
             Image(
-                painter = painterResource(id = R.drawable.today),
+                painter = painter,
                 contentDescription = null,
                 modifier = Modifier
-                    .size(400.dp, 350.dp) // 가로 200dp, 세로 200dp 크기로 고정
+                    .size(400.dp, 300.dp) // 가로 400dp, 세로 300dp 크기로 고정
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            TextPlaceHolder()
+            TextPlaceHolder(viewModel)
         }
     }
 }
@@ -82,7 +100,7 @@ fun PaintDiaryTopAppBar() {
 }
 
 @Composable
-fun TextPlaceHolder() {
+fun TextPlaceHolder(viewModel: DiaryViewModel) {
     var title by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
 
@@ -126,7 +144,6 @@ fun TextPlaceHolder() {
             }
         )
 
-
         // 날짜 표시 (yyyy-MM-dd 형식)
         val currentDate = remember {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -165,7 +182,26 @@ fun TextPlaceHolder() {
                     }
                 }
                 innerTextField()
-            }
-        )
+            })
+    }
+
+    // 저장 버튼
+    Button(
+        onClick = {
+            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val diary = Diary(null,
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(currentDate),
+                title = title,
+                content = text,
+                url = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+            )
+            viewModel.saveDiary(diary)
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(text = "Save Diary")
     }
 }
+
