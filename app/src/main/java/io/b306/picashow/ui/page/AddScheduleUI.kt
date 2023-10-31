@@ -1,10 +1,8 @@
 package io.b306.picashow.ui.page
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Context
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,47 +14,66 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.b306.picashow.ui.theme.PlaceDefault
-import io.b306.picashow.ui.theme.TextFieldCursor
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
-import java.time.DayOfWeek
-import java.time.LocalDateTime
-import java.time.LocalTime
-import androidx.compose.runtime.*
-import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.b306.picashow.database.AppDatabase
+import io.b306.picashow.entity.Schedule
+import io.b306.picashow.repository.ScheduleRepository
+import io.b306.picashow.ui.components.CustomAlertDialog
 import io.b306.picashow.ui.components.CustomTimePicker
 import io.b306.picashow.ui.components.GrayDivider
+import io.b306.picashow.ui.theme.PlaceDefault
+import io.b306.picashow.ui.theme.TextFieldCursor
+import io.b306.picashow.viewmodel.ScheduleViewModel
+import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import java.time.DayOfWeek
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.Date
 
 @Composable
 fun AddSchedulePage() {
+
+    // 의존성 주입
+    val context = LocalContext.current
+
+    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
+    val scheduleRepository = ScheduleRepository(scheduleDao)
+    val scheduleViewModelFactory = ScheduleViewModelFactory(scheduleRepository)
+
+    val scheduleViewModel = viewModel<ScheduleViewModel>(
+        factory = scheduleViewModelFactory
+    )
+
     val selectedStartDate = remember { mutableStateOf(LocalDateTime.now()) }
-    val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
-    val schedule = remember { mutableStateOf("") }
-    val content = remember { mutableStateOf("") }
-    var showTimePicker by remember { mutableStateOf(false) }
     val selectedStartHour = remember { mutableIntStateOf(LocalDateTime.now().hour) }
     val selectedStartMinute = remember { mutableIntStateOf(LocalDateTime.now().minute) }
     val selectedEndHour = remember { mutableIntStateOf(LocalDateTime.now().hour) }
     val selectedEndMinute = remember { mutableIntStateOf(LocalDateTime.now().minute) }
+    val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
+    val scheduleName = remember { mutableStateOf("") }
+    val content = remember { mutableStateOf("") }
+    var showTimePicker by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
+    // AlertDialog 상태
+    var showDialog by remember { mutableStateOf(false) }
+
 
     Box(
         modifier = Modifier
@@ -70,20 +87,21 @@ fun AddSchedulePage() {
             Spacer(modifier = Modifier.height(16.dp))
 
             TextField(
-                value = schedule.value,
-                onValueChange = { schedule.value = it },
-                modifier = Modifier.fillMaxWidth(),
+                value = scheduleName.value,
+                onValueChange = { scheduleName.value = it },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp),
                 placeholder = {
                     Text(
                         text = "제목",
                         color = PlaceDefault, // 텍스트의 색상을 지정
+                        fontSize = 18.sp
                     )
                 },
                 colors = TextFieldDefaults.textFieldColors(
                     textColor = Color.White, // 텍스트 색상 설정
                     cursorColor = Color.White, // 커서 색상 설정
                     focusedIndicatorColor = TextFieldCursor // 마우스 포커스 시 보라색 밑줄을 제거합니다.
-                )
+                ),
             )
 
             GrayDivider()
@@ -218,7 +236,8 @@ fun AddSchedulePage() {
                 placeholder = {
                     Text(
                         text = "메모",
-                        color = PlaceDefault // 텍스트의 색상을 지정
+                        color = PlaceDefault, // 텍스트의 색상을 지정
+                        fontSize = 18.sp
                     )
                 },
                 colors = TextFieldDefaults.textFieldColors(
@@ -250,7 +269,25 @@ fun AddSchedulePage() {
             }
 
             Button(
-                onClick = { /* TODO: 저장 로직 추가 */ },
+                onClick = {
+                    if (scheduleName.value.isEmpty()) {
+                        // alert 창으로 사용자에게 메시지를 띄우기
+                        showDialog = true
+                    } else {
+                        val startDate = combineDateTime(selectedStartDate.value, selectedStartHour.value, selectedStartMinute.value)
+                        val endDate = combineDateTime(selectedEndDate.value, selectedEndHour.value, selectedEndMinute.value)
+
+                        val schedule = Schedule(
+                            scheduleSeq = null,
+                            startDate = startDate,
+                            endDate = endDate,
+                            scheduleName = scheduleName.value,
+                            wallpaperUrl = null,
+                            content = content.value,
+                        )
+                        scheduleViewModel.saveSchedule(schedule)
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.White
@@ -258,6 +295,15 @@ fun AddSchedulePage() {
                 modifier = Modifier.weight(1f)
             ) {
                 Text("저장", fontSize = 20.sp)
+            }
+            if (showDialog) {
+                CustomAlertDialog(
+                    title = "Error",
+                    description = "Schedule name cannot be null!\n일정 제목을 작성해주세요!",
+                    onConfirm = {
+                        showDialog = false
+                    }
+                )
             }
         }
 
@@ -288,4 +334,10 @@ fun showDatePicker(context: Context, dateSetListener: (Int, Int, Int) -> Unit) {
         currentDateTime.dayOfMonth
     )
     datePickerDialog.show()
+}
+
+// 선택한 날짜, 시간을 Date 형식으로 바꾸기
+fun combineDateTime(date: LocalDateTime, hour: Int, minute: Int): Date {
+    val combinedDateTime = date.withHour(hour).withMinute(minute)
+    return Date.from(combinedDateTime.atZone(ZoneId.systemDefault()).toInstant())
 }
