@@ -7,6 +7,5 @@ import androidx.room.PrimaryKey
 data class Wallpaper (
     @PrimaryKey(autoGenerate = true) val wallpaperSeq : Long? = 0L,
     val url : String?,
-    val keyword : String?,
     val createdAt : String?,
     )

@@ -68,9 +68,8 @@ fun DiaryPage() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(12.dp)
-
-            );val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+            Spacer(modifier = Modifier.height(12.dp))
+            val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
 
             val painter = rememberImagePainter(data = imageUrl)
             Image(
@@ -83,19 +82,6 @@ fun DiaryPage() {
             Spacer(modifier = Modifier.height(8.dp))
             TextPlaceHolder(viewModel)
         }
-    }
-}
-
-@Composable
-fun PaintDiaryTopAppBar() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Default.ArrowBack, contentDescription = null)
-        Text(text = "Paint Diary", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        Icon(Icons.Default.Add, contentDescription = null)
     }
 }
 
