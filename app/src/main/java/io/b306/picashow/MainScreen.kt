@@ -40,6 +40,7 @@ import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
 import io.b306.picashow.ui.page.firstPage
+import io.b306.picashow.ui.page.tutorialPage
 
 @Composable
 fun MainScreen(navController: NavHostController) {
@@ -140,7 +141,7 @@ fun MainScreen(navController: NavHostController) {
 
 @Composable
 fun FirstPage() {
-    firstPage()
+    tutorialPage()
 }
 
 @Composable

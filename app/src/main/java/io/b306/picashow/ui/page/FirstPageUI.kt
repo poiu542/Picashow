@@ -80,7 +80,6 @@ var selectedImageIndex =  mutableStateOf(0)
 
 @Composable
 fun firstPage() {
-
     LaunchedEffect(Unit) {  // 이 키워드는 Composable 내부에서 새로운 코루틴을 시작합니다.
         randomImage()  // Suspend function can be called here.
         isLoading.value = false
@@ -94,14 +93,14 @@ fun firstPage() {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-//        Row(
-//            modifier = Modifier.padding(16.dp),
-//            horizontalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            ShowDatePicker()
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ShowDatePicker()
 //            ShowTimePicker()
-//        }
-        if (!isLoading.value) ImageListFromUrls()
+        }
+        if (!isLoading.value) ImageListFromUrls(imageUrls)
         Dialog();
         DownLoadDialog();
     }
@@ -317,21 +316,19 @@ fun Dialog() {
 }
 
 @Composable
-fun ImageListFromUrls() {
-
+fun ImageListFromUrls(imageList: List<String>) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-
     Column(
         Modifier
             .verticalScroll(rememberScrollState())
     ) {
-        for (i in imageUrls.indices step 3) {
+        for (i in imageList.indices step 3) {
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                for (j in i until minOf(i + 3, imageUrls.size)) {
-                    val imageUrl = imageUrls[j]
+                for (j in i until minOf(i + 3, imageList.size)) {
+                    val imageUrl = imageList[j]
 
                     Image(
                         painter = rememberImagePainter(
