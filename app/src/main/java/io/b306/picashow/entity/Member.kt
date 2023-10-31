@@ -9,12 +9,8 @@ import java.util.Date
 @Entity(tableName = "member")
 @TypeConverters(Converters::class)
 data class Member (
-    @PrimaryKey(autoGenerate = true) val memberSeq : Long? = 0L,
-    val fcmToken : String?,
-    val theme : String?,
-    val color : Char?,
-    val keyword : String?,
-    val birth : Date?,
-    val gender : Int?,
-    val hasPerson : Int?,
+    @PrimaryKey(autoGenerate = true) val memberSeq : Long?,
+    val keyword1 : String?,
+    val keyword2 : String?,
+    val keyword3 : String?,
     )

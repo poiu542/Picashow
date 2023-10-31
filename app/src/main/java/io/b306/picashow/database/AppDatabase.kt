@@ -17,7 +17,7 @@ import io.b306.picashow.entity.Wallpaper
 
 @Database(
     entities = [Member::class, Diary::class, Schedule::class, Wallpaper::class],
-    version = 4,                // <- Database version
+    version = 5,                // <- Database version
     exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase() { // <- Add 'abstract' keyword and extends RoomDatabase
