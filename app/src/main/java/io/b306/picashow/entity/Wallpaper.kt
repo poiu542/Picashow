@@ -5,8 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "wallpaper")
 data class Wallpaper (
-    @PrimaryKey(autoGenerate = true) val wallpaperSeq : Long? = 0L,
+    @PrimaryKey(autoGenerate = true) val wallpaperSeq : Long?,
     val url : String?,
-    val keyword : String?,
     val createdAt : String?,
     )

@@ -13,5 +13,17 @@ class MemberRepository(private val memberDao: MemberDao) {
     suspend fun insert(member: Member) {
         memberDao.insert(member)
     }
-    
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun delete(member: Member) {
+        memberDao.delete(member)
+    }
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun update(member: Member) {
+        memberDao.update(member)
+    }
+
 }

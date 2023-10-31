@@ -1,7 +1,12 @@
 package io.b306.picashow.ui.page
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,11 +24,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.b306.picashow.ui.theme.PlaceDefault
@@ -32,15 +39,24 @@ import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
+import androidx.compose.runtime.*
+import androidx.compose.ui.text.style.TextAlign
+import io.b306.picashow.ui.components.CustomTimePicker
+import io.b306.picashow.ui.components.GrayDivider
 
 @Composable
 fun AddSchedulePage() {
-    val selectedDate = remember { mutableStateOf(LocalDateTime.now()) }
-    val selectedTime = remember { mutableStateOf(LocalTime.now()) }
+    val selectedStartDate = remember { mutableStateOf(LocalDateTime.now()) }
+    val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
     val schedule = remember { mutableStateOf("") }
-    val startTime = remember { mutableStateOf("") }
-    val endTime = remember { mutableStateOf("") }
     val content = remember { mutableStateOf("") }
+    var showTimePicker by remember { mutableStateOf(false) }
+    val selectedStartHour = remember { mutableIntStateOf(LocalDateTime.now().hour) }
+    val selectedStartMinute = remember { mutableIntStateOf(LocalDateTime.now().minute) }
+    val selectedEndHour = remember { mutableIntStateOf(LocalDateTime.now().hour) }
+    val selectedEndMinute = remember { mutableIntStateOf(LocalDateTime.now().minute) }
+
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -60,7 +76,7 @@ fun AddSchedulePage() {
                 placeholder = {
                     Text(
                         text = "제목",
-                        color = PlaceDefault // 텍스트의 색상을 지정
+                        color = PlaceDefault, // 텍스트의 색상을 지정
                     )
                 },
                 colors = TextFieldDefaults.textFieldColors(
@@ -70,57 +86,129 @@ fun AddSchedulePage() {
                 )
             )
 
-            Divider(
-                color = Color.Gray, // Divider의 색상을 지정
-                thickness = 1.dp,    // Divider의 두께를 지정
-                modifier = Modifier.fillMaxWidth() // Divider의 너비를 TextField와 같게 설정
-            )
+            GrayDivider()
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    color = Color.White,
-                    text = "${selectedDate.value.monthValue}월 " +
-                            "${selectedDate.value.dayOfMonth}일 " +
-                            "(${getDayOfWeek(selectedDate.value.dayOfWeek)})"
-                )
+                Box(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            // 클릭 시 수행할 작업
+                            showDatePicker(context) { year, month, day ->
+                                val pickedDate = LocalDateTime.of(year, month, day, 0, 0)
+
+                                if (pickedDate.isAfter(selectedEndDate.value)) {
+                                    selectedEndDate.value = pickedDate
+                                }
+
+                                selectedStartDate.value = pickedDate
+                            }
+                        }
+                    )
+                ) {
+                    Text(
+                        color = Color.White,
+                        text = "${selectedStartDate.value.monthValue}월 " +
+                                "${selectedStartDate.value.dayOfMonth}일 " +
+                                "(${getDayOfWeek(selectedStartDate.value.dayOfWeek)})",
+                        fontSize = 20.sp
+                    )
+                }
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(color = Color.White, text = "→")
+                Text(color = Color.White, text = "→", fontSize = 22.sp)
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    color = Color.White,
-                    text = "${selectedDate.value.monthValue}월 " +
-                            "${selectedDate.value.dayOfMonth}일 " +
-                            "(${getDayOfWeek(selectedDate.value.dayOfWeek)})"
-                )
+                Box(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            // 클릭 시 수행할 작업
+                            showDatePicker(context) { year, month, day ->
+                                val pickedDate = LocalDateTime.of(year, month, day, 0, 0)
+                                if (pickedDate.isBefore(selectedStartDate.value)) {
+                                    selectedEndDate.value = selectedStartDate.value
+                                } else {
+                                    selectedEndDate.value = pickedDate
+                                }
+                            }
+                        }
+                    )
+                ) {
+                    Text(
+                        color = Color.White,
+                        text = "${selectedEndDate.value.monthValue}월 " +
+                                "${selectedEndDate.value.dayOfMonth}일 " +
+                                "(${getDayOfWeek(selectedEndDate.value.dayOfWeek)})",
+                        fontSize = 21.sp
+                    )
+                }
+            }
+
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            GrayDivider()
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // TimePickerBox와 CustomTimePicker를 포함하는 컨테이너
+                Box(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            // Box를 클릭하면 CustomTimePicker의 표시 여부를 토글합니다.
+                            showTimePicker = !showTimePicker
+                        }
+                    )
+                ) {
+                    Text(
+                        text = "${selectedStartHour.value.toString().padStart(2, '0')} : " +
+                                selectedStartMinute.value.toString().padStart(2, '0'),
+                        fontSize = 20.sp,
+                        color = Color.White,
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(color = Color.White, text = "→", fontSize = 20.sp)
+                Spacer(modifier = Modifier.width(16.dp))
+                Box(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            // Box를 클릭하면 CustomTimePicker의 표시 여부를 토글합니다.
+                            showTimePicker = !showTimePicker
+                        }
+                    )
+                ) {
+                    Text(
+                        text = "${selectedEndHour.value.toString().padStart(2, '0')} : " +
+                                selectedEndMinute.value.toString().padStart(2, '0'),
+                        fontSize = 20.sp,
+                        color = Color.White,
+                    )
+                }
+            }
+
+            // 조건부로 CustomTimePicker를 렌더링합니다.
+            if (showTimePicker) {
+                Spacer(modifier = Modifier.height(16.dp))
+                GrayDivider()
+                Spacer(modifier = Modifier.height(16.dp))
+                CustomTimePicker(selectedHour = selectedStartHour, selectedMinute = selectedStartMinute)
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Divider(
-                color = Color.Gray, // Divider의 색상을 지정
-                thickness = 1.dp,    // Divider의 두께를 지정
-                modifier = Modifier.fillMaxWidth() // Divider의 너비를 TextField와 같게 설정
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 시간 설정 UI
-            TimePicker(selectedTime.value) {
-                selectedTime.value = it
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Divider(
-                color = Color.Gray, // Divider의 색상을 지정
-                thickness = 1.dp,    // Divider의 두께를 지정
-                modifier = Modifier.fillMaxWidth() // Divider의 너비를 TextField와 같게 설정
-            )
+            GrayDivider()
 
             // 내용 정보 입력 필드
             TextField(
@@ -140,11 +228,7 @@ fun AddSchedulePage() {
                 )
             )
 
-            Divider(
-                color = Color.Gray, // Divider의 색상을 지정
-                thickness = 1.dp,    // Divider의 두께를 지정
-                modifier = Modifier.fillMaxWidth() // Divider의 너비를 TextField와 같게 설정
-            )
+            GrayDivider()
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -180,24 +264,6 @@ fun AddSchedulePage() {
     }
 }
 
-@Composable
-fun TimePicker(time: LocalTime, onTimeSelected: (LocalTime) -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "${time.hour}시", color = Color.White)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "${time.minute}분", color = Color.White)
-            // TODO: 시간 선택 로직 추가
-        }
-    }
-
-}
-
 fun getDayOfWeek(day: DayOfWeek): String {
     return when (day) {
         DayOfWeek.MONDAY -> "월"
@@ -208,4 +274,18 @@ fun getDayOfWeek(day: DayOfWeek): String {
         DayOfWeek.SATURDAY -> "토"
         DayOfWeek.SUNDAY -> "일"
     }
+}
+
+fun showDatePicker(context: Context, dateSetListener: (Int, Int, Int) -> Unit) {
+    val currentDateTime = LocalDateTime.now()
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            dateSetListener(year, month + 1, dayOfMonth)
+        },
+        currentDateTime.year,
+        currentDateTime.monthValue - 1,
+        currentDateTime.dayOfMonth
+    )
+    datePickerDialog.show()
 }

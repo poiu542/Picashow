@@ -17,5 +17,17 @@ class WallpaperRepository(private val wallpaperDao: WallpaperDao) {
     suspend fun insert(wallpaper: Wallpaper ) {
         wallpaperDao.insert(wallpaper)
     }
-    
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun delete(wallpaper: Wallpaper) {
+        wallpaperDao.delete(wallpaper)
+    }
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun update(wallpaper: Wallpaper) {
+        wallpaperDao.update(wallpaper)
+    }
+
 }

@@ -40,8 +40,11 @@ import io.b306.picashow.R
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Diary
 import io.b306.picashow.repository.DiaryRepository
+import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.viewmodel.DiaryViewModel
 import io.b306.picashow.viewmodel.DiaryViewModelFactory
+import io.b306.picashow.viewmodel.MemberViewModel
+import io.b306.picashow.viewmodel.MemberViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,12 +55,22 @@ fun DiaryPage() {
     val context = LocalContext.current
 
     val diaryDao = AppDatabase.getDatabase(context).diaryDao()
-    val repository = DiaryRepository(diaryDao)
-    val viewModelFactory = DiaryViewModelFactory(repository)
+    val diaryRepository = DiaryRepository(diaryDao)
+    val diaryViewModelFactory = DiaryViewModelFactory(diaryRepository)
 
-    val viewModel = viewModel<DiaryViewModel>(
-        factory = viewModelFactory
+    val diaryViewModel = viewModel<DiaryViewModel>(
+        factory = diaryViewModelFactory
     )
+
+    val memberDao = AppDatabase.getDatabase(context).memberDao()
+    val memberRepository = MemberRepository(memberDao)
+    val memberViewModelFactory = MemberViewModelFactory(memberRepository)
+
+    val memberViewModel = viewModel<MemberViewModel>(
+        factory = memberViewModelFactory
+    )
+
+
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -68,9 +81,8 @@ fun DiaryPage() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(12.dp)
-
-            );val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+            Spacer(modifier = Modifier.height(12.dp))
+            val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
 
             val painter = rememberImagePainter(data = imageUrl)
             Image(
@@ -81,21 +93,8 @@ fun DiaryPage() {
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            TextPlaceHolder(viewModel)
+            TextPlaceHolder(diaryViewModel)
         }
-    }
-}
-
-@Composable
-fun PaintDiaryTopAppBar() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Default.ArrowBack, contentDescription = null)
-        Text(text = "Paint Diary", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        Icon(Icons.Default.Add, contentDescription = null)
     }
 }
 

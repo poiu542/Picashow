@@ -9,13 +9,10 @@ import java.util.Date
 @Entity(tableName = "schedule")
 @TypeConverters(Converters::class)
 data class Schedule(
-    @PrimaryKey(autoGenerate = true) val scheduleSeq : Long? = 0L,
+    @PrimaryKey(autoGenerate = true) val scheduleSeq : Long?,
     val startDate : Date?,
     val endDate: Date?,
     val scheduleName : String?,
     val wallpaperUrl : String?,
     val content : String?,
-
-    // Member와의 연관관계
-    val memberSeq : Long?
 )
