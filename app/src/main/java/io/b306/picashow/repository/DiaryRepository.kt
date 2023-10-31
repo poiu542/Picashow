@@ -13,4 +13,16 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
         diaryDao.insert(diary)
     }
 
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun delete(diary: Diary) {
+        diaryDao.delete(diary)
+    }
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun update(diary: Diary) {
+        diaryDao.update(diary)
+    }
+
 }
