@@ -10,7 +10,6 @@ import java.util.Date
 @TypeConverters(Converters::class)
 data class Member (
     @PrimaryKey(autoGenerate = true) val memberSeq : Long? = 0L,
-    val email : String?,
     val fcmToken : String?,
     val theme : String?,
     val color : Char?,
@@ -18,7 +17,4 @@ data class Member (
     val birth : Date?,
     val gender : Int?,
     val hasPerson : Int?,
-    val createdAt : Date?,
-    val lastModifiedAt : Date?,
-    val deletedAt : Date?
     )

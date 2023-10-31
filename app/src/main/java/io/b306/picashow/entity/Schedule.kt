@@ -15,7 +15,4 @@ data class Schedule(
     val scheduleName : String?,
     val wallpaperUrl : String?,
     val content : String?,
-
-    // Member와의 연관관계
-    val memberSeq : Long?
 )
