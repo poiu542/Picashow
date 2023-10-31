@@ -13,5 +13,7 @@ class MemberRepository(private val memberDao: MemberDao) {
     suspend fun insert(member: Member) {
         memberDao.insert(member)
     }
-    
+
+
+
 }
