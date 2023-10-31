@@ -21,6 +21,21 @@ class MemberViewModel(private val repository: MemberRepository) : ViewModel() {
         }
     }
 
+    fun updateMember(member: Member) {
+        viewModelScope.launch {
+            // Diary를 업데이트하고 업데이트된 Diary 객체를 _myInfo LiveData에 할당
+            val updatedDiary = repository.update(member)
+            _myInfo.value = member
+        }
+    }
 
+    // Diary를 삭제하는 함수
+    fun deleteMember(member: Member) {
+        viewModelScope.launch {
+            // Diary를 삭제하고 LiveData를 null로 설정
+            repository.delete(member)
+            _myInfo.value = null
+        }
+    }
 
 }
