@@ -3,6 +3,7 @@ package io.b306.picashow.ui.page
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,9 +33,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.ScheduleRepository
+import io.b306.picashow.scheduleWallpaperChange
 import io.b306.picashow.ui.components.CustomAlertDialog
 import io.b306.picashow.ui.components.CustomTimePicker
 import io.b306.picashow.ui.components.GrayDivider
@@ -42,13 +45,14 @@ import io.b306.picashow.ui.theme.PlaceDefault
 import io.b306.picashow.ui.theme.TextFieldCursor
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
 
 @Composable
-fun AddSchedulePage() {
+fun AddSchedulePage(navController : NavController) {
 
     // 의존성 주입
     val context = LocalContext.current
@@ -56,7 +60,6 @@ fun AddSchedulePage() {
     val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
     val scheduleRepository = ScheduleRepository(scheduleDao)
     val scheduleViewModelFactory = ScheduleViewModelFactory(scheduleRepository)
-
     val scheduleViewModel = viewModel<ScheduleViewModel>(
         factory = scheduleViewModelFactory
     )
@@ -72,7 +75,8 @@ fun AddSchedulePage() {
     var showTimePicker by remember { mutableStateOf(false) }
 
     // AlertDialog 상태
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialogTitle by remember { mutableStateOf(false) }
+    var showDialogDate by remember { mutableStateOf(false) }
 
 
     Box(
@@ -89,7 +93,9 @@ fun AddSchedulePage() {
             TextField(
                 value = scheduleName.value,
                 onValueChange = { scheduleName.value = it },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 0.dp),
                 placeholder = {
                     Text(
                         text = "제목",
@@ -188,8 +194,8 @@ fun AddSchedulePage() {
                     )
                 ) {
                     Text(
-                        text = "${selectedStartHour.value.toString().padStart(2, '0')} : " +
-                                selectedStartMinute.value.toString().padStart(2, '0'),
+                        text = "${selectedStartHour.intValue.toString().padStart(2, '0')} : " +
+                                selectedStartMinute.intValue.toString().padStart(2, '0'),
                         fontSize = 20.sp,
                         color = Color.White,
                     )
@@ -258,7 +264,7 @@ fun AddSchedulePage() {
                 .align(Alignment.BottomCenter) // 하단 중앙에 위치
         ) {
             Button(
-                onClick = { /* TODO: 취소 로직 추가 */ },
+                onClick = { navController.popBackStack() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.White
@@ -268,25 +274,50 @@ fun AddSchedulePage() {
                 Text("취소", fontSize = 20.sp)
             }
 
+            // 저장 버튼
             Button(
                 onClick = {
                     if (scheduleName.value.isEmpty()) {
                         // alert 창으로 사용자에게 메시지를 띄우기
-                        showDialog = true
-                    } else {
-                        val startDate = combineDateTime(selectedStartDate.value, selectedStartHour.value, selectedStartMinute.value)
-                        val endDate = combineDateTime(selectedEndDate.value, selectedEndHour.value, selectedEndMinute.value)
-
-                        val schedule = Schedule(
-                            scheduleSeq = null,
-                            startDate = startDate,
-                            endDate = endDate,
-                            scheduleName = scheduleName.value,
-                            wallpaperUrl = null,
-                            content = content.value,
-                        )
-                        scheduleViewModel.saveSchedule(schedule)
+                        showDialogTitle = true
+                        return@Button
                     }
+                    val startDate = combineDateTime(selectedStartDate.value, selectedStartHour.intValue, selectedStartMinute.intValue)
+                    val endDate = combineDateTime(selectedEndDate.value, selectedEndHour.intValue, selectedEndMinute.intValue)
+
+                    if(startDate.after(endDate)) {
+                        showDialogDate = true
+//                        return@Button
+                    }
+
+                    val schedule = Schedule(
+                        scheduleSeq = null,
+                        startDate = startDate,
+                        endDate = endDate,
+                        scheduleName = scheduleName.value,
+                        wallpaperUrl = null,
+                        content = content.value,
+                    )
+                    // 일정 Room에 추가하기 - imageURL은 없음
+                    scheduleViewModel.saveSchedule(schedule)
+                    /* TODO
+                        1. FastAPI 요청 보내서 이미지 URL 받기
+                        2. 받은 URL schedule 테이블에 update로 넣기
+                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기
+                        * 주의사항
+                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
+                    */
+                    val url = "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg"
+
+                    // 일정 시작 10분 전부터 배경화면 바꾸기
+                    scheduleWallpaperChange(context, startDate, url)
+
+                    val currentTimeMillis = System.currentTimeMillis()
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    val formattedDate = dateFormat.format(Date(currentTimeMillis))
+                    Log.d("CurrentTime", formattedDate)
+
+
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -296,12 +327,20 @@ fun AddSchedulePage() {
             ) {
                 Text("저장", fontSize = 20.sp)
             }
-            if (showDialog) {
+            if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
                     description = "Schedule name cannot be null!\n일정 제목을 작성해주세요!",
                     onConfirm = {
-                        showDialog = false
+                        showDialogTitle = false
+                    }
+                )
+            } else if (showDialogDate) {
+                CustomAlertDialog(
+                    title = "Error",
+                    description = "시작 날짜가 종료 날짜보다 이전입니다. \n근데 이건 개발자가 못 하게 막아야지 -> 다음에 바꿔줌",
+                    onConfirm = {
+                        showDialogDate = false
                     }
                 )
             }

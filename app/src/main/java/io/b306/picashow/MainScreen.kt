@@ -29,7 +29,7 @@ import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
 import io.b306.picashow.ui.page.firstPage
-import io.b306.picashow.ui.page.tutorialPage
+//import io.b306.picashow.ui.page.tutorialPage
 
 @Composable
 fun MainScreen(navController: NavHostController) {
@@ -84,7 +84,7 @@ fun MainScreen(navController: NavHostController) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage() }
                     composable("thirdPage") { ThirdPage() }
-                    composable("addSchedulePage") { AddSchedulePage() }
+                    composable("addSchedulePage") { AddSchedulePage(navController) }
                 }
             }
                 val bottomNavItems = listOf(
@@ -130,7 +130,7 @@ fun MainScreen(navController: NavHostController) {
 
 @Composable
 fun FirstPage() {
-    tutorialPage()
+//    tutorialPage()
 }
 
 @Composable
