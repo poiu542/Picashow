@@ -7,17 +7,19 @@ import androidx.room.RoomDatabase
 import io.b306.picashow.dao.DiaryDao
 import io.b306.picashow.dao.MemberDao
 import io.b306.picashow.dao.ScheduleDao
+import io.b306.picashow.dao.ThemeDao
 import io.b306.picashow.dao.WallpaperDao
 import io.b306.picashow.entity.Diary
 import io.b306.picashow.entity.Member
 import io.b306.picashow.entity.Schedule
+import io.b306.picashow.entity.Theme
 import io.b306.picashow.entity.Wallpaper
 
 // UserDatabase represents database and contains the database holder and server the main access point for the underlying connection to your app's persisted, relational data.
 
 @Database(
-    entities = [Member::class, Diary::class, Schedule::class, Wallpaper::class],
-    version = 5,                // <- Database version
+    entities = [Member::class, Diary::class, Schedule::class, Wallpaper::class, Theme::class],
+    version = 6,                // <- Database version
     exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase() { // <- Add 'abstract' keyword and extends RoomDatabase
@@ -25,6 +27,7 @@ abstract class AppDatabase: RoomDatabase() { // <- Add 'abstract' keyword and ex
     abstract fun diaryDao() : DiaryDao
     abstract fun scheduleDao() : ScheduleDao
     abstract fun wallPaperDao() : WallpaperDao
+    abstract fun themeDao() : ThemeDao
 
     companion object {
         @Volatile

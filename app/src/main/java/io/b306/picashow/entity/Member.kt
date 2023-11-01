@@ -10,7 +10,5 @@ import java.util.Date
 @TypeConverters(Converters::class)
 data class Member (
     @PrimaryKey(autoGenerate = true) val memberSeq : Long?,
-    val keyword1 : String?,
-    val keyword2 : String?,
-    val keyword3 : String?,
+    val tutorial : Boolean?,
     )
