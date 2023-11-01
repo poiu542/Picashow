@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -76,25 +79,28 @@ fun DiaryPage() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(12.dp))
-            val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(), // 전체 화면 크기로 설정
+            content = {
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
 
-            val painter = rememberImagePainter(data = imageUrl)
-            Image(
-                painter = painter,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(400.dp, 300.dp) // 가로 400dp, 세로 300dp 크기로 고정
-            )
+                    val painter = rememberImagePainter(data = imageUrl)
+                    Image(
+                        contentScale = ContentScale.Crop,
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth() // 가로 너비를 부모 컨테이너에 맞게 설정
+                            .height(350.dp) // 이미지의 높이를 화면 높이의 절반으로 설정
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
-            TextPlaceHolder(diaryViewModel)
-        }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextPlaceHolder(diaryViewModel)
+                }
+            }
+        )
     }
 }
 
