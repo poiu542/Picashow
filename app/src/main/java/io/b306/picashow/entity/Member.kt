@@ -9,6 +9,6 @@ import java.util.Date
 @Entity(tableName = "member")
 @TypeConverters(Converters::class)
 data class Member (
-    @PrimaryKey(autoGenerate = true) val memberSeq : Long?,
-    val tutorial : Boolean?,
+    @PrimaryKey(autoGenerate = true) val memberSeq : Long? = 1L,
+    val isTutorial : Boolean?,
     )

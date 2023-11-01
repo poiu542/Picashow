@@ -15,6 +15,9 @@ interface MemberDao : BaseDao<Member>{
 
     @Query("SELECT * FROM member")
     fun getAll() : Flow<List<Member>>
+
+    @Query("SELECT * FROM member WHERE memberSeq = :memberSeq")
+    fun getMember(memberSeq: Long): Flow<Member>
 //    @Query("SELECT * FROM member WHERE date = :date")
 //    fun selectByDate(date : String ) : Member
 
