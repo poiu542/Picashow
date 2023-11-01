@@ -1,5 +1,6 @@
 package io.b306.picashow
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,11 +17,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import io.b306.picashow.database.AppDatabase
+import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
 import io.b306.picashow.ui.components.TopAppBar
@@ -29,7 +34,10 @@ import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
 import io.b306.picashow.ui.page.firstPage
-//import io.b306.picashow.ui.page.tutorialPage
+import io.b306.picashow.ui.page.tutorialPage
+import io.b306.picashow.viewmodel.MemberViewModel
+import io.b306.picashow.viewmodel.MemberViewModelFactory
+import kotlinx.coroutines.CoroutineScope
 
 val flag = true;
 @Composable
@@ -39,18 +47,36 @@ fun MainScreen(navController: NavHostController) {
     var showAppBarAndNavBar by remember { mutableStateOf(true) }  // 상태 변수 추가
     val updatedNavController = rememberUpdatedState(navController)
 
+    val context = LocalContext.current
+    val memberDao = AppDatabase.getDatabase(context).memberDao()
+    val memberRepository = MemberRepository(memberDao)
+    val memberViewModelFactory = MemberViewModelFactory(memberRepository)
+
+    val memberViewModel = viewModel<MemberViewModel>(
+        factory = memberViewModelFactory
+    )
+
     // NavController의 back stack entry를 관찰
-    LaunchedEffect(updatedNavController.value) {
+    val block: suspend CoroutineScope.() -> Unit = {
         updatedNavController.value.addOnDestinationChangedListener { _, destination, _ ->
-            title = when(destination.route) {
+            title = when (destination.route) {
                 "firstPage" -> "Calendar"
                 "secondPage" -> "Main Page"
                 "thirdPage" -> "Diary"
                 else -> "Schedule"
             }
             showAppBarAndNavBar = destination.route != "addSchedulePage"
+
+            // Observe changes in myInfo LiveData
+//            val member = memberViewModel.myInfo.value
+            // Access isTutorial property from the retrieved Member object
+//            val isTutorial = member?.isTutorial ?: false
+            // Use the value as needed
+//            Log.d("sex",isTutorial.toString())
+//            println("Is Tutorial: $isTutorial")
         }
     }
+    LaunchedEffect(updatedNavController.value, block)
 
     Box(
         modifier = Modifier
@@ -64,7 +90,7 @@ fun MainScreen(navController: NavHostController) {
         ) {
 
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
-            if (showAppBarAndNavBar) {
+            if (showAppBarAndNavBar && !flag) {
                 TopAppBar(
                     title = title,
                     onAddClick = {
@@ -122,7 +148,7 @@ fun MainScreen(navController: NavHostController) {
                         onClick = { navController.navigate("thirdPage") }
                     )
                 )
-            if (showAppBarAndNavBar) {
+            if (showAppBarAndNavBar && !flag) {
                 BottomNavigation(
                     items = bottomNavItems
                 )

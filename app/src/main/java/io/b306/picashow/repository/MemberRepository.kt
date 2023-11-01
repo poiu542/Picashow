@@ -2,12 +2,12 @@ package io.b306.picashow.repository
 
 import androidx.annotation.WorkerThread
 import io.b306.picashow.dao.MemberDao
-import io.b306.picashow.entity.Diary
 import io.b306.picashow.entity.Member
 import kotlinx.coroutines.flow.Flow
 
 class MemberRepository(private val memberDao: MemberDao) {
-    val allDiarys: Flow<List<Member>> = memberDao.getAll()
+    val allMembers: Flow<List<Member>> = memberDao.getAll()
+
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
     suspend fun insert(member: Member) {
@@ -26,4 +26,7 @@ class MemberRepository(private val memberDao: MemberDao) {
         memberDao.update(member)
     }
 
+    fun getMember(memberSeq: Long): Flow<Member> {
+        return memberDao.getMember(memberSeq)
+    }
 }

@@ -1,5 +1,7 @@
 package io.b306.picashow.ui.page
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.animateFloatAsState
@@ -7,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,16 +39,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import io.b306.picashow.R
+import io.b306.picashow.database.AppDatabase
+import io.b306.picashow.entity.Member
+import io.b306.picashow.entity.Theme
+import io.b306.picashow.repository.DiaryRepository
+import io.b306.picashow.repository.MemberRepository
+import io.b306.picashow.repository.ThemeRepository
 import io.b306.picashow.ui.theme.Purple40
 import io.b306.picashow.ui.theme.teal40
+import io.b306.picashow.viewmodel.DiaryViewModel
+import io.b306.picashow.viewmodel.DiaryViewModelFactory
+import io.b306.picashow.viewmodel.MemberViewModel
+import io.b306.picashow.viewmodel.MemberViewModelFactory
+import io.b306.picashow.viewmodel.ThemeViewModel
+import io.b306.picashow.viewmodel.ThemeViewModelFactory
+import io.b306.picashow.viewmodel._myInfo
 import kotlinx.coroutines.delay
 import androidx.compose.ui.window.Dialog as Dialog
 
@@ -67,22 +89,92 @@ var tutorialImageUrls = mutableListOf(
     )
         )
 
+var selectedImageIndices = mutableStateListOf<Int>()
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun tutorialPage() {
     LaunchedEffect(Unit) {  // 이 키워드는 Composable 내부에서 새로운 코루틴을 시작합니다.
     }
+
+    val context = LocalContext.current
+
+    val themeDao = AppDatabase.getDatabase(context).themeDao()
+    val themeRepository = ThemeRepository(themeDao)
+    val themeViewModelFactory = ThemeViewModelFactory(themeRepository)
+
+    val themeViewModel = viewModel<ThemeViewModel>(
+        factory = themeViewModelFactory
+    )
+
+    val memberDao = AppDatabase.getDatabase(context).memberDao()
+    val memberRepository = MemberRepository(memberDao)
+    val memberViewModelFactory = MemberViewModelFactory(memberRepository)
+
+    val memberViewModel = viewModel<MemberViewModel>(
+        factory = memberViewModelFactory
+    )
     // TODO 튜토리얼 페이지
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(1.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Choose the photos you like", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-        Spacer(modifier = Modifier.height(10.dp))
-//        AnimatedDialog()
-        TutorialImageListFromUrls()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "     Choose the photos you like",
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = Color.White,
+                textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(10.dp))
+            // AnimatedDialog()
+            TutorialImageListFromUrls()
+        }
+
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .height(60.dp)
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(color = Color.Black)
+                .clickable {
+                    var themeList = mutableStateListOf<Theme>()
+                    for(i in selectedImageIndices) {
+                        val selectTheme = Theme(null,tutorialImageUrls[1][i])
+                        themeList.add(selectTheme)
+                    }
+                    themeViewModel.insertAllThemes(themeList)
+                    var member = Member(1, true)
+                    memberViewModel.saveMember(member)
+                    Log.d("member = {}", _myInfo.value?.isTutorial.toString())
+
+                }
+        ) {
+            var backgroundColor = if (selectedImageIndices.isEmpty()) Color.Gray else teal40
+                Box(modifier = Modifier
+                    .clip(shape = RoundedCornerShape(10.dp))
+                    .height(50.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(backgroundColor)
+                    .fillMaxSize()
+
+                ) {
+                    Text(
+                    text = "start",
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    color = Color.White,
+                    fontSize = 22.sp
+                    )
+                }
+        }
     }
 }
 
@@ -112,7 +204,6 @@ fun AnimatedDialog() {
 @Composable
 fun TutorialImageListFromUrls() {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val selectedImageIndices = remember { mutableStateListOf<Int>() }
 
     Column(
         Modifier
@@ -144,10 +235,10 @@ fun TutorialImageListFromUrls() {
                             .clickable {
                                 if (isSelected) {
                                     selectedImageIndices.remove(j)
-                                // 이미 선택된 이미지라면 제거
+                                    // 이미 선택된 이미지라면 제거
                                 } else {
                                     selectedImageIndices.add(j)
-                                // 선택되지 않은 이미지라면 추가
+                                    // 선택되지 않은 이미지라면 추가
                                 }
                             }
                             .border(
@@ -159,5 +250,6 @@ fun TutorialImageListFromUrls() {
                 }
             }
         }
+        Spacer(modifier = Modifier.height(50.dp))
     }
 }
