@@ -12,6 +12,8 @@ import logging
 import boto3
 from botocore.exceptions import NoCredentialsError
 from PIL import Image
+from pymongo import MongoClient
+
 
 class RequestBody(BaseModel):
     input_text: str
@@ -24,8 +26,9 @@ app = FastAPI()
 # create API client with custom host, port
 api = webuiapi.WebUIApi(host='127.0.0.1', port=7860)
 
+
 # create API client with custom host, port and https
-#api = webuiapi.WebUIApi(host='webui.example.com', port=443, use_https=True)
+# api = webuiapi.WebUIApi(host='webui.example.com', port=443, use_https=True)
 
 def s3_connection():
     try:
@@ -38,14 +41,13 @@ def s3_connection():
     else:
         return s3
 
-def s3_upload(image_bytes):
 
+def s3_upload(image_bytes):
     image_buffer = BytesIO(image_bytes.getvalue())
     image_buffer.seek(0)
 
     image_hash = hash(image_bytes.getvalue())
     s3_object_key = f'images/{image_hash}.png'
-
 
     logger.info(image_buffer)
     logger.info(s3_object_key)
@@ -57,13 +59,14 @@ def s3_upload(image_bytes):
         logger.info("AWS 계정 정보 없음")
     except Exception as e:
         logger.info("오류발생", e)
+
     return f"https://{aws_bucket_name}.s3.{aws_region}.amazonaws.com/{s3_object_key}"
 
-# def s3_get_image_url():
 
-    # filename = {db에서 가져온 이미지 파일 이름 리스트}
-    # location = s3.get_bucket_location(Bucket={자신이 설정한 버킷 이름})["LocationConstraint"]
-    # return f"https://{{자신이 설정한 버킷 이름}}.s3.{location}.amazonaws.com/{filename}"
+# def s3_get_image_url():
+# filename = {db에서 가져온 이미지 파일 이름 리스트}
+# location = s3.get_bucket_location(Bucket={자신이 설정한 버킷 이름})["LocationConstraint"]
+# return f"https://{{자신이 설정한 버킷 이름}}.s3.{location}.amazonaws.com/{filename}"
 
 
 @app.post("/image")
@@ -98,12 +101,32 @@ def sendAPI(requestBody: RequestBody):
     image_bytes = BytesIO()
     image.save(image_bytes, format='png')
 
-
     image_url = s3_upload(image_bytes)
 
     # return StreamingResponse(image_bytes, media_type="image/png")
     return image_url
 
+
+@app.get("/list")
+def getList():
+    mongodb_URI = "mongodb://localhost:27017/"
+    client = MongoClient(mongodb_URI)
+
+    collection = client['final']['wallpaper']
+
+    image_url_list = collection.find({}, {'_id': False})
+
+    sorted_list = sorted(image_url_list, key=lambda x: len(x['phone_number']), reverse=True)
+
+    list = []
+
+    for i in sorted_list:
+        data = {'url': i['url']}
+        list.append(data)
+
+    print(list)
+
+    return list
 
 
 if __name__ == "__main__":
@@ -121,4 +144,4 @@ if __name__ == "__main__":
 
     s3 = s3_connection()
 
-    uvicorn.run(app, host="192.168.31.138", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
