@@ -15,6 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Surface(color = MaterialTheme.colors.background) {
+
                 val navController = rememberNavController()
                 MainScreen(navController = navController)
             }

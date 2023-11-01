@@ -31,6 +31,7 @@ import io.b306.picashow.ui.theme.MainBackground
 import io.b306.picashow.ui.page.firstPage
 import io.b306.picashow.ui.page.tutorialPage
 
+val flag = true;
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -80,11 +81,13 @@ fun MainScreen(navController: NavHostController) {
                     .weight(1f)
                     .fillMaxSize()
             ) {
-                NavHost(navController = navController, startDestination = "secondPage") {
+                val startDestination = if (flag) "tutorialPage" else "secondPage"
+                NavHost(navController = navController, startDestination = startDestination) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage() }
                     composable("thirdPage") { ThirdPage() }
                     composable("addSchedulePage") { AddSchedulePage() }
+                    composable("tutorialPage") { tutorialPage() }
                 }
             }
                 val bottomNavItems = listOf(

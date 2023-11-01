@@ -1,9 +1,16 @@
 package io.b306.picashow.ui.page
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,8 +26,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -33,6 +45,8 @@ import coil.compose.rememberImagePainter
 import io.b306.picashow.R
 import io.b306.picashow.ui.theme.Purple40
 import io.b306.picashow.ui.theme.teal40
+import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Dialog as Dialog
 
 var tutorialImageUrls = mutableListOf(
     arrayOf(
@@ -53,6 +67,7 @@ var tutorialImageUrls = mutableListOf(
     )
         )
 
+
 @Composable
 fun tutorialPage() {
     LaunchedEffect(Unit) {  // 이 키워드는 Composable 내부에서 새로운 코루틴을 시작합니다.
@@ -66,7 +81,31 @@ fun tutorialPage() {
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Choose the photos you like", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
         Spacer(modifier = Modifier.height(10.dp))
+//        AnimatedDialog()
         TutorialImageListFromUrls()
+    }
+}
+
+@Composable
+fun AnimatedDialog() {
+    var visible by remember { mutableStateOf(false) }
+
+    Dialog(onDismissRequest = {}) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(200.dp)
+        ) {
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = tween( 5000,5000, Easing {100f }))
+            ) {
+                Text(
+                    text = "welcome",
+                    color = Color.White,
+                    fontSize = 20.sp
+                )
+            }
+        }
     }
 }
 
@@ -79,12 +118,12 @@ fun TutorialImageListFromUrls() {
         Modifier
             .verticalScroll(rememberScrollState())
     ) {
-        for (i in tutorialImageUrls[0].indices step 3) {
+        for (i in tutorialImageUrls[0].indices step 2) {
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                for (j in i until minOf(i + 3, tutorialImageUrls[0].size)) {
+                for (j in i until minOf(i + 2, tutorialImageUrls[0].size)) {
                     val imageUrl = tutorialImageUrls[0][j]
                     val isSelected = j in selectedImageIndices
                     Image(
@@ -98,15 +137,17 @@ fun TutorialImageListFromUrls() {
                         ),
                         contentDescription = "인공지능이 생성한 바탕화면",
                         modifier = Modifier
-                            .size((screenWidth / 2) - 30.dp, ((screenWidth / 2) + 30.dp))
+                            .size((screenWidth / 2) - 30.dp, ((screenWidth / 2) + 60.dp))
                             .fillMaxHeight()
-                            .padding(start= 15.dp,end = 15.dp, bottom = 25.dp)
-                            .clip(shape = RoundedCornerShape(8.dp))
+                            .padding(5.dp)
+                            .clip(shape = RoundedCornerShape(5.dp))
                             .clickable {
                                 if (isSelected) {
-                                    selectedImageIndices.remove(j) // 이미 선택된 이미지라면 제거
+                                    selectedImageIndices.remove(j)
+                                // 이미 선택된 이미지라면 제거
                                 } else {
-                                    selectedImageIndices.add(j) // 선택되지 않은 이미지라면 추가
+                                    selectedImageIndices.add(j)
+                                // 선택되지 않은 이미지라면 추가
                                 }
                             }
                             .border(
