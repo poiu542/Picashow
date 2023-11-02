@@ -18,9 +18,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.room.Room
+import io.b306.picashow.dao.ScheduleDao
+import io.b306.picashow.repository.ScheduleRepository
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
 import io.b306.picashow.ui.components.TopAppBar
@@ -29,6 +33,10 @@ import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
 import io.b306.picashow.ui.page.firstPage
+import io.b306.picashow.ui.page.tutorialPage
+import io.b306.picashow.viewmodel.ScheduleViewModel
+import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+
 //import io.b306.picashow.ui.page.tutorialPage
 
 val flag = true;
@@ -133,12 +141,17 @@ fun MainScreen(navController: NavHostController) {
 
 @Composable
 fun FirstPage() {
-//    tutorialPage()
+    tutorialPage()
 }
 
 @Composable
 fun SecondPage() {
-    // TODO 두번째 사실상 메인 페이지 - 할일 페이지임
+//    // TODO 두번째 사실상 메인 페이지 - 할일 페이지임
+//
+//    val scheduleRepository = remember { ScheduleRepository(scheduleDao = ) }
+//    val viewModelFactory = ScheduleViewModelFactory(scheduleRepository)
+//    val viewModel: ScheduleViewModel = viewModel(factory = viewModelFactory)
+
     MainPage()
 }
 

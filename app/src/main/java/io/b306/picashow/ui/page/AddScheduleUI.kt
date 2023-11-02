@@ -171,12 +171,6 @@ fun AddSchedulePage(navController : NavController) {
                 }
             }
 
-//            Spacer(modifier = Modifier.height(16.dp))
-//
-//            GrayDivider()
-//
-//            Spacer(modifier = Modifier.height(16.dp))
-
             Spacer(modifier = Modifier.width(8.dp))
 
             Row(
@@ -287,6 +281,7 @@ fun AddSchedulePage(navController : NavController) {
 
                     if(startDate.after(endDate)) {
                         showDialogDate = true
+                        // TODO - 종료 시간 로직 추가 안 해서 아래 return 하면 안 됨
 //                        return@Button
                     }
 
@@ -308,6 +303,7 @@ fun AddSchedulePage(navController : NavController) {
                         - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
                     */
                     val url = "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg"
+                    val url2 = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRu3WFtOVor0CH59xCanFxZ21wDCyUueV7jPg&usqp=CAU"
 
                     // 일정 시작 10분 전부터 배경화면 바꾸기
                     scheduleWallpaperChange(context, startDate, url)
