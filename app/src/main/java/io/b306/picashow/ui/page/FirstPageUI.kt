@@ -102,7 +102,7 @@ fun firstPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(1.dp)
+            .padding(10.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
@@ -331,7 +331,7 @@ fun ImageListFromUrls(imageList: List<String>) {
         for (i in imageList.indices step 3) {
             Row(
                 Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Start
             ) {
                 for (j in i until minOf(i + 3, imageList.size)) {
                     val imageUrl = imageList[j]
@@ -346,9 +346,9 @@ fun ImageListFromUrls(imageList: List<String>) {
                         contentDescription = "인공지능이 생성한 바탕화면",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size((screenWidth / 3) - 20.dp, ((screenWidth / 2) - 5.dp))
+                            .size((screenWidth / 3) - 17.dp, ((screenWidth / 2) - 5.dp))
                             .fillMaxHeight()
-                            .padding(end = 5.dp, bottom = 5.dp)
+                            .padding(2.5.dp)
                             .clip(shape = RoundedCornerShape(8.dp))
                             .clickable {
                                 selectedImageUrl.value = imageUrl

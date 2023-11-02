@@ -1,23 +1,36 @@
 package io.b306.picashow.viewmodel
 
+import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.b306.picashow.entity.Member
 import io.b306.picashow.repository.MemberRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+var please = mutableStateOf(false);
 val _myInfo = MutableLiveData<Member?>()
 class MemberViewModel(private val repository: MemberRepository) : ViewModel() {
 
 //    val myInfo: LiveData<Member?> get() = _myInfo
 
-    // Function to get a specific member
     fun getMember(memberSeq: Long) {
         viewModelScope.launch {
-            val member = repository.getMember(memberSeq).singleOrNull()
-            _myInfo.value = member
+            // 백그라운드 스레드에서 데이터베이스에 액세스
+            var member = withContext(Dispatchers.IO) {
+                repository.getMember(memberSeq)
+            }
+//            if(member == null) member = Member(1,true);
+            // UI 업데이트는 메인 스레드에서 수행되어야 함
+            withContext(Dispatchers.Main) {
+                Log.d("member 조회 in model", member.isTutorial.toString())
+                _myInfo.value = member
+                please.value = true
+            }
         }
     }
 
