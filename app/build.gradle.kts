@@ -54,6 +54,18 @@ android {
 
 dependencies {
 
+    // Composable 내에서 ViewModel 인스턴스를 가져오기
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0-alpha03")
+
+    // Kotlin Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+
+    // ViewModel, LiveData
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
+
     // Room 사용을 위해
     val roomVersion = "2.4.3"
     val activityVersion = "1.3.1"

@@ -26,7 +26,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,29 +37,57 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import io.b306.picashow.entity.Schedule
 import io.b306.picashow.ui.components.ShowDatePicker
 import io.b306.picashow.ui.components.ShowTimePicker
 import io.b306.picashow.ui.theme.NoneSelectBackground
+import io.b306.picashow.viewmodel.ScheduleViewModel
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.YearMonth
-import java.util.Calendar
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.b306.picashow.database.AppDatabase
+import io.b306.picashow.repository.ScheduleRepository
+import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import java.text.SimpleDateFormat
+import java.util.Locale
+import kotlin.time.Duration.Companion.minutes
 
 //class MainPageUI {
 //}
 
 @Composable
 fun MainPage() {
-    val today = Calendar.getInstance()
-    val currentYear = today.get(Calendar.YEAR)
-    val currentMonth = today.get(Calendar.MONTH) + 1 // Java의 Calendar MONTH는 0부터 시작합니다.
-    val currentDay = today.get(Calendar.DAY_OF_MONTH)
+
+    val context = LocalContext.current
+
+    // 1. ScheduleDao의 인스턴스를 생성합니다.
+    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
+    // 2. ScheduleDao 인스턴스를 사용하여 ScheduleRepository의 인스턴스를 생성합니다.
+    val repository = ScheduleRepository(scheduleDao)
+    // 3. ScheduleRepository 인스턴스를 사용하여 ScheduleViewModelFactory의 인스턴스를 생성합니다.
+    val viewModelFactory = ScheduleViewModelFactory(repository)
+    // 4. ScheduleViewModelFactory를 사용하여 ViewModel 인스턴스를 얻습니다.
+    val scheduleViewModel: ScheduleViewModel = viewModel(factory = viewModelFactory)
+
+    val today = LocalDate.now()
+    val currentYear = today.year
+    val currentMonth = today.monthValue // monthValue는 1부터 시작함
+    val currentDay = today.dayOfMonth
 
     // 선택된 날짜를 관리하는 상태
     var selectedDay by remember { mutableIntStateOf(currentDay) }
     var selectedMonth by remember { mutableIntStateOf(currentMonth) }
+
+    LaunchedEffect(key1 = Unit) { // key1 = Unit을 사용하여 페이지가 처음 로딩될 때 한번만 실행되게 함
+        scheduleViewModel.fetchSchedulesForDate(currentYear, currentMonth, currentDay)
+    }
 
     Column(
         modifier = Modifier
@@ -66,18 +96,22 @@ fun MainPage() {
     ) {
         Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal ->
             selectedDay = newSelectedDay
-            selectedMonth = if(selectedDay <= currentDay) {
+            selectedMonth = if(selectedDay < currentDay) {
                 selectedMonthLocal + 1
             } else {
                 selectedMonthLocal
             }
-            Log.e("SelectedDay", "Selected day is: $selectedMonth/$selectedDay")  // 로그로 선택한 날짜 출력
+            Log.e("SelectedDay", "Selected day is: $selectedMonth/$selectedDay")
 
             // TODO selectedMonth, Day를 사용해서 그 날짜에 해당하는 Task를 Room에서 불러오면 됨(코루틴 비둘기 써서)
-
+            // 선택된 날짜의 데이터를 가져옵니다.
+            scheduleViewModel.fetchSchedulesForDate(currentYear, selectedMonth, selectedDay)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Tasks()
+
+        val schedules by scheduleViewModel.schedules.observeAsState(emptyList())
+
+        Tasks(schedules)
     }
 }
 
@@ -143,27 +177,24 @@ fun DayWithBackground(day: Int?, dayName: String, isSelected: Boolean, onDayClic
 }
 
 fun getWeekDayNamesBasedOnStartDay(year: Int, month: Int, startDay: Int): List<String> {
-    val calendar = Calendar.getInstance()
-    calendar.set(year, month - 1, startDay)
-
+    val startDate = LocalDate.of(year, month, startDay)
     val dayNames = mutableListOf<String>()
+
     val repeatCount = 30 // 30번 반복
 
     for (j in 0 until repeatCount) {
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val dayOfWeek = startDate.plusDays(j.toLong()).dayOfWeek
         dayNames.add(
             when (dayOfWeek) {
-                Calendar.MONDAY -> "Mon"
-                Calendar.TUESDAY -> "Tue"
-                Calendar.WEDNESDAY -> "Wed"
-                Calendar.THURSDAY -> "Thu"
-                Calendar.FRIDAY -> "Fri"
-                Calendar.SATURDAY -> "Sat"
-                Calendar.SUNDAY -> "Sun"
-                else -> ""
+                DayOfWeek.MONDAY -> "Mon"
+                DayOfWeek.TUESDAY -> "Tue"
+                DayOfWeek.WEDNESDAY -> "Wed"
+                DayOfWeek.THURSDAY -> "Thu"
+                DayOfWeek.FRIDAY -> "Fri"
+                DayOfWeek.SATURDAY -> "Sat"
+                DayOfWeek.SUNDAY -> "Sun"
             }
         )
-        calendar.add(Calendar.DAY_OF_MONTH, 1) // 다음 날짜로 이동
     }
 
     return dayNames
@@ -194,7 +225,7 @@ fun monthToName(month: Int): String {
 }
 
 @Composable
-fun Tasks() {
+fun Tasks(schedules: List<Schedule>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp)
@@ -209,15 +240,20 @@ fun Tasks() {
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        items(5) { // 5개의 TaskItem을 렌더링. 필요한 개수에 따라 변경 가능
-            TaskItem(taskName = "기택아 Room 빨리 만들어줘", time = "16:00 - 18:30")
+        items(schedules.size) { index ->
+            val schedule = schedules[index]
+            TaskItem(schedule)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun TaskItem(taskName: String, time: String) {
+fun TaskItem(schedule: Schedule) {
+
+    // 시간 포맷을 정의
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,13 +270,13 @@ fun TaskItem(taskName: String, time: String) {
     ) {
         Column {
             Text(
-                text = taskName,
+                text = schedule.scheduleName.toString(),
                 style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = time,
+                text = "${schedule.startDate?.let { timeFormat.format(it) }} - ${timeFormat.format(schedule.endDate)}",
                 style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
                 color = Color.White
             )

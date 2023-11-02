@@ -2,7 +2,6 @@ package io.b306.picashow.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.b306.picashow.repository.DiaryRepository
 import io.b306.picashow.repository.ScheduleRepository
 
 class ScheduleViewModelFactory(
