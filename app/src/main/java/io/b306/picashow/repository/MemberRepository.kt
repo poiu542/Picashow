@@ -26,7 +26,9 @@ class MemberRepository(private val memberDao: MemberDao) {
         memberDao.update(member)
     }
 
-    fun getMember(memberSeq: Long): Flow<Member> {
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    fun getMember(memberSeq: Long): Member {
         return memberDao.getMember(memberSeq)
     }
 }
