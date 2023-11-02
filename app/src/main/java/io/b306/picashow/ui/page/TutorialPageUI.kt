@@ -140,7 +140,7 @@ fun mainTutorial() {
                 .align(Alignment.BottomCenter)
                 .background(color = Color.Black)
                 .clickable {
-                    flag.value = false
+                    flag.value = true
 
                     var themeList = mutableStateListOf<Theme>()
                     for (i in selectedImageIndices) {
