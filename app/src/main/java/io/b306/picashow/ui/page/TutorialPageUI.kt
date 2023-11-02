@@ -55,6 +55,7 @@ import io.b306.picashow.R
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Member
 import io.b306.picashow.entity.Theme
+import io.b306.picashow.flag
 import io.b306.picashow.repository.DiaryRepository
 import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.repository.ThemeRepository
@@ -87,7 +88,7 @@ var tutorialImageUrls = mutableListOf(
     "greece",
     "sky"
     )
-        )
+)
 
 var selectedImageIndices = mutableStateListOf<Int>()
 
@@ -118,16 +119,14 @@ fun tutorialPage() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(1.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.Center)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "     Choose the photos you like",
+                text = "       Choose the photos you like",
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
                 color = Color.White,
@@ -145,9 +144,11 @@ fun tutorialPage() {
                 .align(Alignment.BottomCenter)
                 .background(color = Color.Black)
                 .clickable {
+                    flag.value = false
+
                     var themeList = mutableStateListOf<Theme>()
-                    for(i in selectedImageIndices) {
-                        val selectTheme = Theme(null,tutorialImageUrls[1][i])
+                    for (i in selectedImageIndices) {
+                        val selectTheme = Theme(null, tutorialImageUrls[1][i])
                         themeList.add(selectTheme)
                     }
                     themeViewModel.insertAllThemes(themeList)
@@ -176,6 +177,11 @@ fun tutorialPage() {
                 }
         }
     }
+}
+
+@Composable
+fun startButton() {
+
 }
 
 @Composable

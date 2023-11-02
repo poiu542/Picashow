@@ -39,7 +39,7 @@ import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 
-val flag = true;
+var flag = mutableStateOf(true);
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -90,7 +90,7 @@ fun MainScreen(navController: NavHostController) {
         ) {
 
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
-            if (showAppBarAndNavBar && !flag) {
+            if (showAppBarAndNavBar && !flag.value) {
                 TopAppBar(
                     title = title,
                     onAddClick = {
@@ -107,7 +107,7 @@ fun MainScreen(navController: NavHostController) {
                     .weight(1f)
                     .fillMaxSize()
             ) {
-                val startDestination = if (flag) "tutorialPage" else "secondPage"
+                val startDestination = if (flag.value) "tutorialPage" else "secondPage"
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage() }
@@ -148,7 +148,7 @@ fun MainScreen(navController: NavHostController) {
                         onClick = { navController.navigate("thirdPage") }
                     )
                 )
-            if (showAppBarAndNavBar && !flag) {
+            if (showAppBarAndNavBar && !flag.value) {
                 BottomNavigation(
                     items = bottomNavItems
                 )
@@ -159,7 +159,7 @@ fun MainScreen(navController: NavHostController) {
 
 @Composable
 fun FirstPage() {
-//    tutorialPage()
+    firstPage()
 }
 
 @Composable
