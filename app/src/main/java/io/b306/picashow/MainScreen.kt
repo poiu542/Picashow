@@ -37,9 +37,10 @@ import io.b306.picashow.ui.page.firstPage
 import io.b306.picashow.ui.page.tutorialPage
 import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
+import io.b306.picashow.viewmodel._myInfo
 import kotlinx.coroutines.CoroutineScope
 
-var flag = mutableStateOf(true);
+var flag = mutableStateOf(false);
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -88,9 +89,9 @@ fun MainScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-
+            flag.value = _myInfo.value?.isTutorial!!
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
-            if (showAppBarAndNavBar && !flag.value) {
+            if (showAppBarAndNavBar && flag.value) {
                 TopAppBar(
                     title = title,
                     onAddClick = {
@@ -107,7 +108,7 @@ fun MainScreen(navController: NavHostController) {
                     .weight(1f)
                     .fillMaxSize()
             ) {
-                val startDestination = if (flag.value) "tutorialPage" else "secondPage"
+                val startDestination = if (!flag.value) "tutorialPage" else "secondPage"
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage() }
@@ -148,7 +149,7 @@ fun MainScreen(navController: NavHostController) {
                         onClick = { navController.navigate("thirdPage") }
                     )
                 )
-            if (showAppBarAndNavBar && !flag.value) {
+            if (showAppBarAndNavBar && flag.value) {
                 BottomNavigation(
                     items = bottomNavItems
                 )

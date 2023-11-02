@@ -1,10 +1,10 @@
 package io.b306.picashow.ui.page
 
 import android.annotation.SuppressLint
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,7 +30,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,8 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -51,18 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
-import io.b306.picashow.R
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Member
 import io.b306.picashow.entity.Theme
 import io.b306.picashow.flag
-import io.b306.picashow.repository.DiaryRepository
 import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.repository.ThemeRepository
-import io.b306.picashow.ui.theme.Purple40
 import io.b306.picashow.ui.theme.teal40
-import io.b306.picashow.viewmodel.DiaryViewModel
-import io.b306.picashow.viewmodel.DiaryViewModelFactory
 import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
 import io.b306.picashow.viewmodel.ThemeViewModel
@@ -91,13 +82,19 @@ var tutorialImageUrls = mutableListOf(
 )
 
 var selectedImageIndices = mutableStateListOf<Int>()
-
+var textTutorialDone = mutableStateOf(false)
 @SuppressLint("SuspiciousIndentation")
 @Composable
 fun tutorialPage() {
     LaunchedEffect(Unit) {  // 이 키워드는 Composable 내부에서 새로운 코루틴을 시작합니다.
     }
+    if(textTutorialDone.value) mainTutorial()
+    else textTutorial()
 
+}
+
+@Composable
+fun mainTutorial() {
     val context = LocalContext.current
 
     val themeDao = AppDatabase.getDatabase(context).themeDao()
@@ -144,7 +141,7 @@ fun tutorialPage() {
                 .align(Alignment.BottomCenter)
                 .background(color = Color.Black)
                 .clickable {
-                    flag.value = false
+                    flag.value = true
 
                     var themeList = mutableStateListOf<Theme>()
                     for (i in selectedImageIndices) {
@@ -152,60 +149,88 @@ fun tutorialPage() {
                         themeList.add(selectTheme)
                     }
                     themeViewModel.insertAllThemes(themeList)
-                    var member = Member(1, true)
+                    val deviceUniqueId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+
+                    var member = Member(1, true, deviceUniqueId)
                     memberViewModel.saveMember(member)
                     Log.d("member = {}", _myInfo.value?.isTutorial.toString())
 
                 }
         ) {
             var backgroundColor = if (selectedImageIndices.isEmpty()) Color.Gray else teal40
-                Box(modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .height(50.dp)
-                    .align(Alignment.BottomCenter)
-                    .background(backgroundColor)
-                    .fillMaxSize()
+            Box(modifier = Modifier
+                .clip(shape = RoundedCornerShape(10.dp))
+                .height(50.dp)
+                .align(Alignment.BottomCenter)
+                .background(backgroundColor)
+                .fillMaxSize()
 
-                ) {
-                    Text(
+            ) {
+                Text(
                     text = "start",
                     modifier = Modifier
                         .align(Alignment.Center),
                     color = Color.White,
                     fontSize = 22.sp
-                    )
-                }
-        }
-    }
-}
-
-@Composable
-fun startButton() {
-
-}
-
-@Composable
-fun AnimatedDialog() {
-    var visible by remember { mutableStateOf(false) }
-
-    Dialog(onDismissRequest = {}) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(200.dp)
-        ) {
-            AnimatedVisibility(
-                visible = true,
-                enter = fadeIn(animationSpec = tween( 5000,5000, Easing {100f }))
-            ) {
-                Text(
-                    text = "welcome",
-                    color = Color.White,
-                    fontSize = 20.sp
                 )
             }
         }
     }
 }
+
+@Composable
+fun textTutorial() {
+    var isVisible1 by remember { mutableStateOf(false) }
+    var isVisible2 by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(100L)
+        isVisible1 = true
+        delay(2000L)
+
+        isVisible1 = false
+        delay(1500L)
+
+        isVisible2 = true
+        delay(2000L)
+
+        isVisible2 = false
+        delay(1000L)
+        textTutorialDone.value =true
+    }
+
+    Dialog(onDismissRequest = {}) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(500.dp)
+        ) {
+            AnimatedVisibility(
+                visible = isVisible1,
+                enter = fadeIn(animationSpec = tween(1500)),
+                exit = fadeOut(animationSpec = tween(1500))
+            ) {
+                Text(
+                    text = "welcome to free background!",
+                    color = Color.White,
+                    fontSize = 40.sp
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isVisible2,
+                enter = fadeIn(animationSpec = tween(1500)),
+                exit = fadeOut(animationSpec = tween(1500))
+            ) {
+                Text(
+                    text = "골라보랑께!",
+                    color = Color.White,
+                    fontSize = 40.sp
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun TutorialImageListFromUrls() {

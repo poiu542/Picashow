@@ -16,34 +16,25 @@ import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
 import io.b306.picashow.viewmodel._myInfo
+import io.b306.picashow.viewmodel.please
 
 class MainActivity : ComponentActivity() {
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             Surface(color = MaterialTheme.colors.background) {
-
-                val navController = rememberNavController()
-                MainScreen(navController = navController)
-
-                val context = LocalContext.current
-                val memberDao = AppDatabase.getDatabase(context).memberDao()
-                val memberRepository = MemberRepository(memberDao)
-                val memberViewModelFactory = MemberViewModelFactory(memberRepository)
-
+                val application = applicationContext as PicaShowApp
+                val memberViewModelFactory = MemberViewModelFactory(application.repository)
                 val memberViewModel = viewModel<MemberViewModel>(
                     factory = memberViewModelFactory
                 )
-
-                val member = memberViewModel.getMember(1L)
-                // Access isTutorial property from the retrieved Member object
-                Log.d("member = {}", _myInfo.value?.isTutorial.toString())
-//                val isTutorial = member?. ?: null
-                // Use the value as needed
-//                Log.d("sex",isTutorial.toString())
-                _myInfo.value?.isTutorial
+                memberViewModel.getMember(1L)
+                val navController = rememberNavController()
+                if(please.value)MainScreen(navController = navController)
             }
         }
     }
