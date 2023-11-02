@@ -1,6 +1,7 @@
 package io.b306.picashow.ui.page
 
 import android.annotation.SuppressLint
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Easing
@@ -148,7 +149,9 @@ fun mainTutorial() {
                         themeList.add(selectTheme)
                     }
                     themeViewModel.insertAllThemes(themeList)
-                    var member = Member(1, true)
+                    val deviceUniqueId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+
+                    var member = Member(1, true, deviceUniqueId)
                     memberViewModel.saveMember(member)
                     Log.d("member = {}", _myInfo.value?.isTutorial.toString())
 

@@ -11,4 +11,5 @@ import java.util.Date
 data class Member (
     @PrimaryKey(autoGenerate = true) val memberSeq : Long? = 1L,
     val isTutorial : Boolean?,
+    val deviceId : String?,
     )

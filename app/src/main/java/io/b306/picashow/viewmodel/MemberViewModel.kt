@@ -24,7 +24,7 @@ class MemberViewModel(private val repository: MemberRepository) : ViewModel() {
             var member = withContext(Dispatchers.IO) {
                 repository.getMember(memberSeq)
             }
-            if(member == null) member = Member(1,false);
+            if(member == null) member = Member(1,false, null);
             // UI 업데이트는 메인 스레드에서 수행되어야 함
             withContext(Dispatchers.Main) {
                 Log.d("member 조회 in model", member.isTutorial.toString())
