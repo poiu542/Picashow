@@ -34,8 +34,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,6 +66,7 @@ import io.b306.picashow.WallpaperChangeWorker
 import io.b306.picashow.api.ApiObject
 import java.util.Calendar
 
+// 모든 배경 화면 URL 배열
 var imageUrls = mutableListOf(
     "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B",
     "https://images.unsplash.com/photo-1659951345629-091600ae202c?auto=format&fit=crop&q=80&w=435&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -72,17 +75,27 @@ var imageUrls = mutableListOf(
     "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99DBC5375AC8CA3328",
     "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
   )
-var isLoading = mutableStateOf(true)
-var showDialog =  mutableStateOf(false)
-var showDownloadDialog =  mutableStateOf(false)
-var selectedImageUrl=  mutableStateOf("")
-var selectedImageIndex =  mutableStateOf(0)
+
+// 랜덤 이미지를 추가로 가져오기 위한 변수
+var randomImageLoading = mutableStateOf(true) // 랜덤 이미지 상태 관리
+var showBigImage =  mutableStateOf(false) // 이미지 크게 보기 상태 관리
+var showDownloadDialog =  mutableStateOf(false) // 다운로드 다이얼로그 상태 관리
+var selectedImageUrl=  mutableStateOf("") // 선택된 이미지의 URL
+var selectedImageIndex =  mutableIntStateOf(0) // 선택된 이미지의 인덱스
 
 @Composable
 fun firstPage() {
-    LaunchedEffect(Unit) {  // 이 키워드는 Composable 내부에서 새로운 코루틴을 시작합니다.
-        randomImage()  // Suspend function can be called here.
-        isLoading.value = false
+    // 랜더링 이전에 랜덤 사진 요청
+    LaunchedEffect(Unit) {
+        randomImage()
+        randomImageLoading.value = false
+    }
+    // Loading 상태 초기화
+    DisposableEffect(Unit) {
+        onDispose {
+            randomImageLoading.value = true
+            // 여기에 실행해야 할 코드를 작성하세요.
+        }
     }
     // TODO 첫번째 캘린더 - 두현이 페이지
 //    scheduleWallpaperChange(LocalContext.current);
@@ -97,10 +110,10 @@ fun firstPage() {
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ShowDatePicker()
+//            ShowDatePicker()
 //            ShowTimePicker()
         }
-        if (!isLoading.value) ImageListFromUrls(imageUrls)
+        if (!randomImageLoading.value) {ImageListFromUrls(imageUrls)}
         Dialog();
         DownLoadDialog();
     }
@@ -110,12 +123,10 @@ fun firstPage() {
 suspend fun randomImage() {
     try {
         val response = ApiObject.ImageService.getRandomImages("93YL0o_9XZVVDjcByIys84JINkWnLKTGXML9PNMXES4")
-        response.body()?.let { Log.d("상태", it.id) }
         val urlList = response.body()?.urls
         urlList?.let { imageUrls.add(it.raw)}
     }catch (e: Exception) {
-        Log.d("오류","발생")
-        Log.d("오류로그",e.printStackTrace().toString())
+        Log.d("randomImage 오류 발생",e.printStackTrace().toString())
     }
 
 }
@@ -223,14 +234,11 @@ fun DownLoadDialog() {
                             text = "\uD83D\uDCF1  배경화면으로 설정",
                             color = Color.White,
                             modifier = Modifier.clickable {
-                                val imageUrl = selectedImageUrl // 변경하려는 이미지의 URL
-
+                                val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
                                 val inputData = workDataOf("imageUrl" to imageUrl)
-
                                 val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
                                     .setInputData(inputData)
                                     .build()
-
                                 WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
                                 Toast.makeText(context, "해당 이미지가 배경화면으로 설정되었습니다.", Toast.LENGTH_SHORT).show()
                             },
@@ -249,7 +257,6 @@ fun DownLoadDialog() {
                             fontSize = 20.sp,
                             text = "\uD83D\uDDBC️  내 갤러리에 저장",
                             modifier = Modifier.clickable {
-                                // 저장하는 코드를 여기에 작성하세요
                                 downloadImage(context, selectedImageUrl.value, "배경 화면 다운로드 중", "Downloading images..")
                                 Toast.makeText(context, "다운로드가 진행중입니다.", Toast.LENGTH_SHORT).show()
                             },
@@ -266,10 +273,10 @@ fun DownLoadDialog() {
 @Composable
 fun Dialog() {
     val pagerState = rememberPagerState(pageCount = imageUrls.size)
-    if (showDialog.value) {
+    if (showBigImage.value) {
         Dialog(
             onDismissRequest = {
-                showDialog.value = false
+                showBigImage.value = false
             },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false // experimental
@@ -296,20 +303,19 @@ fun Dialog() {
                                 contentDescription=null,
                                 modifier= Modifier
                                     .size(100.dp)
-                                    .clickable {
-                                        showDownloadDialog.value = true; selectedImageUrl.value =
-                                        imageUrls[page];
-                                    }
                                     .padding(bottom = 50.dp)
+                                    .clickable {
+                                        showDownloadDialog.value = true;
+                                        selectedImageUrl.value = imageUrls[page];
+                                    }
+
                             )
                         }
                     }
                     LaunchedEffect(Unit) {
                         pagerState.scrollToPage(selectedImageIndex.value)
                     }
-
                 }
-
             }
         }
     }
@@ -338,6 +344,7 @@ fun ImageListFromUrls(imageList: List<String>) {
                             }
                         ),
                         contentDescription = "인공지능이 생성한 바탕화면",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size((screenWidth / 3) - 20.dp, ((screenWidth / 2) - 5.dp))
                             .fillMaxHeight()
@@ -346,9 +353,8 @@ fun ImageListFromUrls(imageList: List<String>) {
                             .clickable {
                                 selectedImageUrl.value = imageUrl
                                 selectedImageIndex.value = j
-                                showDialog.value = true
-                            },
-                        contentScale = ContentScale.FillBounds
+                                showBigImage.value = true
+                            }
                     )
                 }
             }
