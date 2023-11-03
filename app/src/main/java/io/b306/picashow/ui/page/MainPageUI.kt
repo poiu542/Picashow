@@ -52,6 +52,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.repository.ScheduleRepository
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
@@ -63,7 +64,7 @@ import kotlin.time.Duration.Companion.minutes
 //}
 
 @Composable
-fun MainPage() {
+fun MainPage(navController : NavController) {
 
     val context = LocalContext.current
 
@@ -111,7 +112,10 @@ fun MainPage() {
 
         val schedules by scheduleViewModel.schedules.observeAsState(emptyList())
 
-        Tasks(schedules)
+        Tasks(schedules, onTaskClick = { schedule ->
+            // TODO: 상세 페이지로 이동하는 로직
+            navController.navigate("detailPage/${schedule.scheduleSeq}")
+        })
     }
 }
 
@@ -225,7 +229,7 @@ fun monthToName(month: Int): String {
 }
 
 @Composable
-fun Tasks(schedules: List<Schedule>) {
+fun Tasks(schedules: List<Schedule>, onTaskClick: (Schedule) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp)
@@ -242,14 +246,14 @@ fun Tasks(schedules: List<Schedule>) {
 
         items(schedules.size) { index ->
             val schedule = schedules[index]
-            TaskItem(schedule)
+            TaskItem(schedule = schedule, onClick = { onTaskClick(schedule)})
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun TaskItem(schedule: Schedule) {
+fun TaskItem(schedule: Schedule,  onClick: () -> Unit) {
 
     // 시간 포맷을 정의
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -258,6 +262,7 @@ fun TaskItem(schedule: Schedule) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
+            .clickable(onClick = onClick) // 클릭 이벤트 처리
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFF00A7A7), Color(0xFF2C2C2C)),
