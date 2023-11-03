@@ -213,7 +213,7 @@ fun DownLoadDialog() {
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color.Black)
-                        .clickable {}
+                        .clickable { }
                 ) {
                     Divider(
                         color = Color.Gray,
@@ -234,6 +234,7 @@ fun DownLoadDialog() {
                             text = "\uD83D\uDCF1  배경화면으로 설정",
                             color = Color.White,
                             modifier = Modifier.clickable {
+
                                 val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
                                 val inputData = workDataOf("imageUrl" to imageUrl)
                                 val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
@@ -247,10 +248,16 @@ fun DownLoadDialog() {
                         Text(
                             fontSize = 20.sp,
                             text = "\uD83D\uDD12  잠금화면으로 설정",
+                            color = Color.White,
                             modifier = Modifier.clickable {
-                                // 잠금화면으로 설정하는 코드를 여기에 작성하세요
-                            },
-                            color = Color.White
+                                val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
+                                val inputData = workDataOf("imageUrl" to imageUrl, "isLockScreen" to true)
+                                val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
+                                    .setInputData(inputData)
+                                    .build()
+                                WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
+                                Toast.makeText(context, "해당 이미지가 잠금화면으로 설정되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
                         )
 
                         Text(
