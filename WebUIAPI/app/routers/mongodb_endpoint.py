@@ -2,7 +2,9 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from pymongo import MongoClient
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from typing_extensions import Annotated
+import math
 
 router = APIRouter()
 mongodb_URI = "mongodb+srv://ldg03198:GZpxCobLh5To6L2k@wallpaper.vvwenhz.mongodb.net/?retryWrites=true&w=majority"
@@ -16,12 +18,22 @@ def registUser():
 
 # 배경화면 조회 API
 @router.get("/list")
-def getList():
+async def getList(q: int = Query(default=1)):
     # mongodb_URI = "localhost:27017"
-    # collection = client.final.wallpaper
-    collection = client['final']['wallpaper']
+    collection = client.final.wallpaper
 
-    image_url_list = collection.find({}, {'_id': False})
+    page_number = q
+    page_size = 15
+
+    image_url_list = (collection
+                      .find({}, {'_id': False})
+                      .skip((page_number-1)*page_size)
+                      .limit(page_size))
+
+
+    total_pages = math.ceil(collection.count_documents({}) / page_size)
+
+    last_page_num = math.ceil(total_pages / page_size)
 
     sorted_list = sorted(image_url_list, key=lambda x: len(x['phone_number']), reverse=True)
 
@@ -31,4 +43,7 @@ def getList():
         data = {'url': i['url']}
         list.append(data)
 
-    return list
+    return {'list': list,
+             'limit': page_size,
+             'page': page_number,
+             'last_page_num': last_page_num}
