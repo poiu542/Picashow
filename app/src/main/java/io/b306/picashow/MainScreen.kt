@@ -132,7 +132,7 @@ fun MainScreen(navController: NavHostController) {
                             Log.e("Navigation", "scheduleSeq is null")
                             CustomAlertDialog(
                                 title = "Error",
-                                description = "",
+                                description = "일시적인 오류입니다.\n반복할 시 관리자에게 문의해주세요.",
                                 onConfirm = {
                                     showDialogTitle = false
                                 }
