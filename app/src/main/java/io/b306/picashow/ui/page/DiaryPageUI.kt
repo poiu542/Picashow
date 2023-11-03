@@ -1,14 +1,12 @@
 package io.b306.picashow.ui.page
 
 import android.app.DatePickerDialog
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,7 +51,6 @@ import io.b306.picashow.viewmodel.MemberViewModelFactory
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
@@ -63,7 +60,6 @@ val inputDateTime = LocalDateTime.now()
 val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 val formattedDate = inputDateTime.format(formatter)
 var diaryTitle = mutableStateOf(formattedDate)
-var isDatePickerVisible by mutableStateOf(false) // 날짜 선택기를 보이게 하기 위한 상태 변수
 
 @Composable
 fun DiaryPage() {
@@ -107,6 +103,17 @@ fun DiaryPage() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+
+                ) {
+                    DateText(diaryTitle.value) {
+
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp)
                 ) {
                     Image(
@@ -120,29 +127,28 @@ fun DiaryPage() {
                             .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
                     )
                 }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                        .clickable {
-                            ShowDatePicker(selectedDate = diaryTitle.value)
-                        }
-                ) {
-                    DateText(diaryTitle.value) {
+                val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                val selectedDate = dateFormatter.parse(diaryTitle.value)
 
-                    }
+                // 선택한 날짜에 해당하는 일기 리스트를 가져옵니다.
+                diaryViewModel.getDiaryByDate(selectedDate)
+
+                val diaryList = diaryViewModel.diaryList.value
+
+                if (diaryList != null && diaryList.isNotEmpty()) {
+                    // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
+                    val selectedDiary = diaryList[0] // 여기에서 첫 번째 일기를 가져옴
+                } else {
+                    // 선택한 날짜에 일기가 없을 때 새로운 일기를 작성할 수 있도록 UI를 구성합니다.
+                    TextPlaceHolder(diaryViewModel)
                 }
-                ShowDatePicker(selectedDate = diaryTitle.value)
-                TextPlaceHolder(diaryViewModel)
             }
         }
     )
-
 }
 
 @Composable
 fun TextPlaceHolder(viewModel: DiaryViewModel) {
-    var title by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
 
     val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
@@ -166,8 +172,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
             contentAlignment = Alignment.Center
         ) {
             BasicTextField(
-                value = title,
-                onValueChange = { newText -> title = newText },
+                value = text,
+                onValueChange = { newText -> text = newText },
                 textStyle = TextStyle(
                     color = Color.White,
                     fontSize = 20.sp,
@@ -180,54 +186,15 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
                 visualTransformation = VisualTransformation.None
             )
 
-            if (title.isEmpty()) {
+            if (text.isEmpty()) {
                 Text(
-                    text = "Title",
+                    text = "text",
                     color = Color.Gray,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 내용 입력 박스
-        val textBoxModifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
-            .padding(4.dp)
-
-        Box(
-            modifier = textBoxModifier,
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            // 밑줄
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color.Gray)
-            )
-
-            // 텍스트 입력 필드
-            BasicTextField(
-                value = text,
-                onValueChange = { newText -> text = newText },
-                textStyle = TextStyle(
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Left // 왼쪽 정렬
-                ),
-                cursorBrush = SolidColor(Color.White),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Transparent)
-                    .padding(top = 4.dp) // 밑줄과 간격 띄우기
-                ,
-                visualTransformation = VisualTransformation.None
-            )
         }
     }
 
@@ -236,13 +203,13 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
         onClick = {
             val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val diary = Diary(
-                null,
+                diarySeq = null, // autoGenerate로 설정되므로 null로 둡니다.
                 date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(currentDate),
-                title = title,
+                title = text,
                 content = text,
                 url = imageUrl
             )
-            viewModel.saveDiary(diary)
+            viewModel.saveDiary(diary) // DiaryViewModel을 사용하여 일기를 저장합니다.
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -266,9 +233,11 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
             .padding(4.dp)
             .clickable { // DateText를 클릭할 때 ShowDatePicker() 호출
                 onDateTextClicked()
+
             },
         contentAlignment = Alignment.Center
     ) {
+        ShowDatePicker(selectedDate = diaryTitle.value)
         Text(
             text = AnnotatedString(parsedDate.format(dateFormatter)),
             color = Color.LightGray,
@@ -292,9 +261,14 @@ fun ShowDatePicker(selectedDate: String) {
             val month = calendar.get(Calendar.MONTH)
             val year = calendar.get(Calendar.YEAR)
 
+            // 'selectedDate'를 'yyyy/MM/dd' 형식으로 변경
+            val selectedDateFormatted = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(
+                SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(selectedDate)
+            )
+
             DatePickerDialog(context, { _, mYear, mMonth, mDay ->
-                val newSelectedDate = "${mDay}/${mMonth + 1}/$mYear"
-                diaryTitle.value = "${mDay}/${mMonth + 1}/$mYear"
+                val newSelectedDate = "$mYear/${String.format("%02d", mMonth + 1)}/${String.format("%02d", mDay)}"
+                diaryTitle.value = newSelectedDate
             }, year, month, day).show()
         }
     )
@@ -303,3 +277,4 @@ fun ShowDatePicker(selectedDate: String) {
         Text("Selected Date: $selectedDate")
     }
 }
+

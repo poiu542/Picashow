@@ -4,6 +4,7 @@ import androidx.annotation.WorkerThread
 import io.b306.picashow.dao.DiaryDao
 import io.b306.picashow.entity.Diary
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 class DiaryRepository(private val diaryDao: DiaryDao) {
     val allDiarys: Flow<List<Diary>> = diaryDao.getAll()
@@ -25,4 +26,8 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
         diaryDao.update(diary)
     }
 
+    // DiaryRepository.kt에 새로운 함수 추가
+    fun getDiaryByDate(selectedDate: Date): Flow<List<Diary>> {
+        return diaryDao.getDiaryByDate(selectedDate)
+    }
 }
