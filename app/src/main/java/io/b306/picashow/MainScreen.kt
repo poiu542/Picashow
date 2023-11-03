@@ -160,7 +160,7 @@ fun MainScreen(navController: NavHostController) {
 
 @Composable
 fun FirstPage() {
-    tutorialPage()
+    firstPage()
 }
 
 @Composable
