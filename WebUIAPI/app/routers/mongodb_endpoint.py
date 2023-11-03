@@ -1,15 +1,19 @@
-from ..main import app
-from pymongo import MongoClient
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from pymongo import MongoClient
+from fastapi import APIRouter
+from app.main import logger
+router = APIRouter()
 
 # 배경화면 다운로드 시 유저 등록 API
-@app.post("/download")
+@router.post("/download")
 def registUser():
     return True
 
 
 # 배경화면 조회 API
-@app.get("/list")
+@router.get("/list")
 def getList():
     mongodb_URI = "mongodb+srv://ldg03198:GZpxCobLh5To6L2k@wallpaper.vvwenhz.mongodb.net/?retryWrites=true&w=majority"
     # mongodb_URI = "localhost:27017"
@@ -28,6 +32,6 @@ def getList():
         data = {'url': i['url']}
         list.append(data)
 
-    print(list)
+    logger.info(list)
 
     return list

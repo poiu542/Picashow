@@ -1,15 +1,12 @@
 import logging
 import boto3
 from botocore.exceptions import NoCredentialsError
-import sys, os
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-
-from app.main import logger
-from app.main import aws_access_key
-from app.main import aws_secret_key
-from app.main import aws_region
-from app.main import aws_bucket_name
-
+import os
+from ..main import logger
+from ..main import aws_access_key
+from ..main import aws_secret_key
+from ..main import aws_bucket_name
+from ..main import aws_region
 
 
 from io import BytesIO

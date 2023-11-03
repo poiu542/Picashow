@@ -1,21 +1,16 @@
 import sys, os
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import webuiapi
 from io import BytesIO
-
-# from app.s3 import s3Service as s3
-# from app.models.image_prompt import ImagePrompt
-from s3 import s3Service as s3
-from models.image_prompt import ImagePrompt
-
-
-
+from app.s3 import s3Service as s3
+from app.models.image_prompt import ImagePrompt
+from app.main import logger
 import os
-from main import logger
 import openai
-from fastapi import FastAPI
+from fastapi import  APIRouter
 
-app = FastAPI()
+router = APIRouter()
+
 
 openai.organization = "org-cdrFOsSb24KAY7vi5zmNpYRv"
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -31,7 +26,7 @@ def get_value_from_key(theme_list, key):
 
 
 # 배경화면 생성 API
-@app.post("/image")
+@router.post("/image")
 def sendAPI(requestBody: ImagePrompt):
 
     theme_list = [
