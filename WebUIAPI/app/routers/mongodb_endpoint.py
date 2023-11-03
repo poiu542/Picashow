@@ -22,7 +22,7 @@ def registUser():
 
 # 배경화면 조회 API
 @router.get("/list")
-async def getList(q: int = Query(default=1)):
+def getList(q: int = Query(default=1)):
     # mongodb_URI = "localhost:27017"
     collection = client.final.wallpaper
 
@@ -51,3 +51,4 @@ async def getList(q: int = Query(default=1)):
              'limit': page_size,
              'page': page_number,
              'last_page_num': last_page_num}
+
