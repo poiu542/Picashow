@@ -22,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -79,17 +81,17 @@ fun DiaryPage() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                 ) {
                     DateText()
+//                    ShowDatePicker()
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
 
                 val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
 
                 val painter = rememberImagePainter(data = imageUrl)
-                val dateTextModifier = Modifier
+                Modifier
                     .fillMaxWidth()
                     .background(Color.Transparent)
                     .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
@@ -98,7 +100,7 @@ fun DiaryPage() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(start = 16.dp, end = 16.dp)
                 ) {
 
                     Image(
@@ -108,12 +110,11 @@ fun DiaryPage() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(350.dp)
+                            .clip(RoundedCornerShape(1.dp))
+                            .border(1.dp, Color.Gray)
                     )
                 }
 
-
-
-                Spacer(modifier = Modifier.height(8.dp))
                 TextPlaceHolder(diaryViewModel)
             }
         }
@@ -130,13 +131,14 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(start = 16.dp, end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 제목 입력
         val titleBoxModifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
+            .height(100.dp)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
 
         Box(
@@ -174,12 +176,12 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
         // 내용 입력 박스
         val textBoxModifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
 
         Box(
             modifier = textBoxModifier,
-            contentAlignment = Alignment.TopStart
+            contentAlignment = Alignment.BottomCenter
         ) {
             // 밑줄
             Box(
@@ -242,7 +244,7 @@ fun DateText() {
             .fillMaxWidth()
             .height(40.dp)
             .background(Color.Transparent)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp),
         contentAlignment = Alignment.Center
     ) {
