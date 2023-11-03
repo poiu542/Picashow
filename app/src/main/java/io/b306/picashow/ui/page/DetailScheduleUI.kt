@@ -1,8 +1,5 @@
 package io.b306.picashow.ui.page
 
-import android.app.AlertDialog
-import android.app.DatePickerDialog
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,13 +43,11 @@ import io.b306.picashow.ui.theme.TextFieldCursor
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.Date
 
 @Composable
-fun AddSchedulePage(navController : NavController) {
+fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
     // 의존성 주입
     val context = LocalContext.current
@@ -282,7 +277,7 @@ fun AddSchedulePage(navController : NavController) {
                     if(startDate.after(endDate)) {
                         showDialogDate = true
                         // TODO - 종료 시간 로직 추가 안 해서 아래 return 하면 안 됨
-                        return@Button
+//                        return@Button
                     }
 
                     val schedule = Schedule(
@@ -313,8 +308,7 @@ fun AddSchedulePage(navController : NavController) {
                     val formattedDate = dateFormat.format(Date(currentTimeMillis))
                     Log.d("CurrentTime", formattedDate)
 
-                    // 일정 추가 후 뒤로가기
-                    navController.popBackStack()
+
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -344,36 +338,4 @@ fun AddSchedulePage(navController : NavController) {
         }
 
     }
-}
-
-fun getDayOfWeek(day: DayOfWeek): String {
-    return when (day) {
-        DayOfWeek.MONDAY -> "월"
-        DayOfWeek.TUESDAY -> "화"
-        DayOfWeek.WEDNESDAY -> "수"
-        DayOfWeek.THURSDAY -> "목"
-        DayOfWeek.FRIDAY -> "금"
-        DayOfWeek.SATURDAY -> "토"
-        DayOfWeek.SUNDAY -> "일"
-    }
-}
-
-fun showDatePicker(context: Context, dateSetListener: (Int, Int, Int) -> Unit) {
-    val currentDateTime = LocalDateTime.now()
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            dateSetListener(year, month + 1, dayOfMonth)
-        },
-        currentDateTime.year,
-        currentDateTime.monthValue - 1,
-        currentDateTime.dayOfMonth
-    )
-    datePickerDialog.show()
-}
-
-// 선택한 날짜, 시간을 Date 형식으로 바꾸기
-fun combineDateTime(date: LocalDateTime, hour: Int, minute: Int): Date {
-    val combinedDateTime = date.withHour(hour).withMinute(minute)
-    return Date.from(combinedDateTime.atZone(ZoneId.systemDefault()).toInstant())
 }

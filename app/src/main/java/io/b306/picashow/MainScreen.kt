@@ -28,8 +28,10 @@ import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
+import io.b306.picashow.ui.components.CustomAlertDialog
 import io.b306.picashow.ui.components.TopAppBar
 import io.b306.picashow.ui.page.AddSchedulePage
+import io.b306.picashow.ui.page.DetailScheduleUI
 import io.b306.picashow.ui.page.DiaryPage
 import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
@@ -40,7 +42,7 @@ import io.b306.picashow.viewmodel.MemberViewModelFactory
 import io.b306.picashow.viewmodel._myInfo
 import kotlinx.coroutines.CoroutineScope
 
-var flag = mutableStateOf(false);
+var flag = mutableStateOf(false)
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -56,6 +58,8 @@ fun MainScreen(navController: NavHostController) {
     val memberViewModel = viewModel<MemberViewModel>(
         factory = memberViewModelFactory
     )
+
+    var showDialogTitle by remember { mutableStateOf(false) }
 
     // NavController의 back stack entry를 관찰
     val block: suspend CoroutineScope.() -> Unit = {
@@ -111,10 +115,30 @@ fun MainScreen(navController: NavHostController) {
                 val startDestination = if (!flag.value) "tutorialPage" else "secondPage"
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable("firstPage") { FirstPage() }
-                    composable("secondPage") { SecondPage() }
+                    composable("secondPage") { SecondPage(navController) }
                     composable("thirdPage") { ThirdPage() }
                     composable("addSchedulePage") { AddSchedulePage(navController) }
                     composable("tutorialPage") { tutorialPage() }
+                    composable("detailPage/{scheduleSeq}") { backStackEntry ->
+                        // 여기에서 DetailPage Composable을 호출하고, scheduleSeq 파라미터를 전달합니다.
+                        // 라우트에서 파라미터를 추출합니다.
+                        val scheduleSeq = backStackEntry.arguments?.getString("scheduleSeq")
+                        // null 체크
+                        if (scheduleSeq != null) {
+                            // DetailScheduleUI 컴포저블을 호출하고 필요한 파라미터를 전달합니다.
+                            DetailScheduleUI(navController = navController, scheduleSeq = scheduleSeq)
+                        } else {
+                            // 여기서 에러를 처리하거나 다른 화면으로 돌아갑니다.
+                            Log.e("Navigation", "scheduleSeq is null")
+                            CustomAlertDialog(
+                                title = "Error",
+                                description = "일시적인 오류입니다.\n반복할 시 관리자에게 문의해주세요.",
+                                onConfirm = {
+                                    showDialogTitle = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
                 val bottomNavItems = listOf(
@@ -164,14 +188,9 @@ fun FirstPage() {
 }
 
 @Composable
-fun SecondPage() {
-//    // TODO 두번째 사실상 메인 페이지 - 할일 페이지임
-//
-//    val scheduleRepository = remember { ScheduleRepository(scheduleDao = ) }
-//    val viewModelFactory = ScheduleViewModelFactory(scheduleRepository)
-//    val viewModel: ScheduleViewModel = viewModel(factory = viewModelFactory)
-
-    MainPage()
+fun SecondPage(navController : NavHostController) {
+    // TODO 두번째 사실상 메인 페이지 - 할일 페이지임
+    MainPage(navController)
 }
 
 @Composable
