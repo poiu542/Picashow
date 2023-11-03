@@ -6,8 +6,8 @@ import os
 from pymongo import MongoClient
 
 import app.main as main
-
 from io import BytesIO
+main.load_dotenv()
 
 def connection():
 
@@ -30,7 +30,7 @@ def upload(image_bytes, s3, theme):
 
     try:
         s3.upload_fileobj(image_buffer, main.aws_bucket_name, s3_object_key, ExtraArgs={'ContentType': 'image/png'})
-        mongodb_URI = "mongodb+srv://ldg03198:GZpxCobLh5To6L2k@wallpaper.vvwenhz.mongodb.net/?retryWrites=true&w=majority"
+        mongodb_URI = os.getenv("MONGODB_URI")
         client = MongoClient(mongodb_URI)
         collection = client.final.wallpaper
         collection.insert_one(

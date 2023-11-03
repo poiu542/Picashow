@@ -3,9 +3,12 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from pymongo import MongoClient
 from fastapi import APIRouter
+import app.main as main
+main.load_dotenv()
 
 router = APIRouter()
-mongodb_URI = "mongodb+srv://ldg03198:GZpxCobLh5To6L2k@wallpaper.vvwenhz.mongodb.net/?retryWrites=true&w=majority"
+
+mongodb_URI = os.getenv("MONGODB_URI")
 client = MongoClient(mongodb_URI)
 
 # 배경화면 다운로드 시 유저 등록 API
