@@ -2,6 +2,9 @@ import logging
 import boto3
 from botocore.exceptions import NoCredentialsError
 import os
+
+from pymongo import MongoClient
+
 import app.main as main
 
 from io import BytesIO
@@ -18,7 +21,7 @@ def connection():
     else:
         return s3
 
-def upload(image_bytes, s3):
+def upload(image_bytes, s3, theme):
     image_buffer = BytesIO(image_bytes.getvalue())
     image_buffer.seek(0)
 
@@ -27,6 +30,16 @@ def upload(image_bytes, s3):
 
     try:
         s3.upload_fileobj(image_buffer, main.aws_bucket_name, s3_object_key, ExtraArgs={'ContentType': 'image/png'})
+        mongodb_URI = "mongodb+srv://ldg03198:GZpxCobLh5To6L2k@wallpaper.vvwenhz.mongodb.net/?retryWrites=true&w=majority"
+        client = MongoClient(mongodb_URI)
+        collection = client.final.wallpaper
+        collection.insert_one(
+            {
+                "url": f"https://{main.aws_bucket_name}.s3.{main.aws_region}.amazonaws.com/{s3_object_key}",
+                "phone_number": [],
+                "theme": f"{theme}"
+            }
+        )
 
     except NoCredentialsError:
         print("AWS 계정 정보 없음")
