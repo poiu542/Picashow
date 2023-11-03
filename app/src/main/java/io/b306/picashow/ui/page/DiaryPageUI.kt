@@ -1,8 +1,11 @@
 package io.b306.picashow.ui.page
 
+import android.app.DatePickerDialog
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,11 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
@@ -45,13 +51,25 @@ import io.b306.picashow.viewmodel.DiaryViewModelFactory
 import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+val inputDateTime = LocalDateTime.now()
+val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+val formattedDate = inputDateTime.format(formatter)
+var diaryTitle = mutableStateOf(formattedDate)
+var isDatePickerVisible by mutableStateOf(false) // 날짜 선택기를 보이게 하기 위한 상태 변수
 
 @Composable
 fun DiaryPage() {
     // 의존성 주입
     val context = LocalContext.current
+
 
     val diaryDao = AppDatabase.getDatabase(context).diaryDao()
     val diaryRepository = DiaryRepository(diaryDao)
@@ -69,6 +87,8 @@ fun DiaryPage() {
         factory = memberViewModelFactory
     )
 
+    var selectedDate by remember { mutableStateOf("") }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         content = {
@@ -78,31 +98,17 @@ fun DiaryPage() {
                     dateFormat.format(Date())
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                ) {
-                    DateText()
-//                    ShowDatePicker()
-                }
 
 
                 val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
 
                 val painter = rememberImagePainter(data = imageUrl)
-                Modifier
-                    .fillMaxWidth()
-                    .background(Color.Transparent)
-                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
-                    .padding(4.dp)
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp)
                 ) {
-
                     Image(
                         contentScale = ContentScale.Crop,
                         painter = painter,
@@ -110,16 +116,30 @@ fun DiaryPage() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(350.dp)
-                            .clip(RoundedCornerShape(1.dp))
-                            .border(1.dp, Color.Gray)
+                            .clip(RoundedCornerShape(4.dp))
+                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
                     )
                 }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                        .clickable {
+                            ShowDatePicker(selectedDate = diaryTitle.value)
+                        }
+                ) {
+                    DateText(diaryTitle.value) {
 
+                    }
+                }
+                ShowDatePicker(selectedDate = diaryTitle.value)
                 TextPlaceHolder(diaryViewModel)
             }
         }
     )
+
 }
+
 @Composable
 fun TextPlaceHolder(viewModel: DiaryViewModel) {
     var title by remember { mutableStateOf("") }
@@ -232,27 +252,54 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
     }
 }
 
-
 @Composable
-fun DateText() {
-    val currentDate = remember {
-        val dateFormat = SimpleDateFormat("M월 d일 EEEE", Locale.getDefault())
-        dateFormat.format(Date())
-    }
+fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
+    val dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd") // 날짜 문자열 형식에 맞춰 포맷터를 설정
+    val parsedDate = LocalDate.parse(selectedDate, dateFormatter)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
             .background(Color.Transparent)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable { // DateText를 클릭할 때 ShowDatePicker() 호출
+                onDateTextClicked()
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "$currentDate Diary",
+            text = AnnotatedString(parsedDate.format(dateFormatter)),
             color = Color.LightGray,
             fontSize = 20.sp,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+
+@Composable
+fun ShowDatePicker(selectedDate: String) {
+    val context = LocalContext.current
+
+    Icon(
+        Icons.Default.DateRange,
+        contentDescription = "Open Date Picker",
+        modifier = Modifier.clickable {
+            val calendar: Calendar = Calendar.getInstance()
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            val month = calendar.get(Calendar.MONTH)
+            val year = calendar.get(Calendar.YEAR)
+
+            DatePickerDialog(context, { _, mYear, mMonth, mDay ->
+                val newSelectedDate = "${mDay}/${mMonth + 1}/$mYear"
+                diaryTitle.value = "${mDay}/${mMonth + 1}/$mYear"
+            }, year, month, day).show()
+        }
+    )
+
+    if (selectedDate.isNotEmpty()) {
+        Text("Selected Date: $selectedDate")
     }
 }
