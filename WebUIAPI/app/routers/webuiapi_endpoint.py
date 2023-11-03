@@ -71,6 +71,6 @@ def sendAPI(requestBody: ImagePrompt.ImagePrompt):
     image_bytes = BytesIO()
     image.save(image_bytes, format='png')
 
-    image_url = s3.upload(image_bytes, s3.connection())
+    image_url = s3.upload(image_bytes, s3.connection(), theme)
 
     return image_url
