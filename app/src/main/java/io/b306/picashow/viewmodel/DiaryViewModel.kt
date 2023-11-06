@@ -1,5 +1,6 @@
 package io.b306.picashow.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,6 +8,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import io.b306.picashow.entity.Diary
 import io.b306.picashow.repository.DiaryRepository
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -44,11 +46,19 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
         }
     }
 
-    fun getDiaryByDate(selectedDate: Date) {
+    fun getDiaryByDate(selectedDate: Long) {
         viewModelScope.launch {
-            val diaryList = repository.getDiaryByDate(selectedDate).asLiveData()
-            _diaryList.value = diaryList.value
+//            val diaryList = repository.getDiaryByDate(selectedDate).asLiveData()
+//            Log.d("viewModelSelectedDate = {}", selectedDate.toString())
+//            Log.d("viewModelDiary = {}", diaryList.value.toString())
+//            _diaryList.value = diaryList.value
+            repository.getDiaryByDate(selectedDate).collect {
+                _diaryList.postValue(it)
+            }
+            Log.d("뷰모델에서", _diaryList.toString())
         }
     }
+
+
 }
 
