@@ -13,12 +13,13 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TopAppBar(title : String, onAddClick: (() -> Unit)? = null) {
+fun TopAppBar(title : String, onAddClick: (() -> Unit)? = null, icon: ImageVector = Icons.Default.Add) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -36,7 +37,7 @@ fun TopAppBar(title : String, onAddClick: (() -> Unit)? = null) {
             color = Color.White,
             )
         Icon(
-            Icons.Default.Add,
+            icon,
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier
