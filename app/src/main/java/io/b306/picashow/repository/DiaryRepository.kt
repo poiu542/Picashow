@@ -27,7 +27,9 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
     }
 
     // DiaryRepository.kt에 새로운 함수 추가
-    fun getDiaryByDate(selectedDate: Date): Flow<List<Diary>> {
+    fun getDiaryByDate(selectedDate: Long): Flow<List<Diary>> {
         return diaryDao.getDiaryByDate(selectedDate)
     }
+
+
 }

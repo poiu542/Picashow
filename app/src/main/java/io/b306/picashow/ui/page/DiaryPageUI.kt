@@ -1,6 +1,7 @@
 package io.b306.picashow.ui.page
 
 import android.app.DatePickerDialog
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,7 +21,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,7 +69,6 @@ fun DiaryPage() {
     // 의존성 주입
     val context = LocalContext.current
 
-
     val diaryDao = AppDatabase.getDatabase(context).diaryDao()
     val diaryRepository = DiaryRepository(diaryDao)
     val diaryViewModelFactory = DiaryViewModelFactory(diaryRepository)
@@ -83,8 +85,34 @@ fun DiaryPage() {
         factory = memberViewModelFactory
     )
 
-    var selectedDate by remember { mutableStateOf("") }
+    // 날짜 포맷터
+    val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
 
+    // 사용자가 선택한 날짜를 String으로 가져옴
+    val selectedDateStr = diaryTitle.value
+
+    // 선택한 날짜를 Date로 변환
+    val selectedDate = dateFormatter.parse(selectedDateStr)
+
+    // 선택한 날짜에 해당하는 일기 리스트를 가져옵니다.
+    LaunchedEffect(selectedDateStr) {
+        diaryViewModel.getDiaryByDate(selectedDate.time)
+        Log.d("now time=", selectedDate.time.toString()) // Date 객체에서 time을 사용하여 Long으로 변환
+    }
+    val diaryList by diaryViewModel.diaryList.observeAsState()
+
+    Log.d("selectedDate =", selectedDateStr)
+    Log.d("diaryList =", diaryList?.get(0)?.toString() ?: "Diary 목록이 비어있습니다.")
+
+    Image(diaryViewModel)
+}
+
+
+
+
+
+@Composable
+fun Image(diaryViewModel: DiaryViewModel) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         content = {
@@ -94,17 +122,13 @@ fun DiaryPage() {
                     dateFormat.format(Date())
                 }
 
-
-
                 val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
-
                 val painter = rememberImagePainter(data = imageUrl)
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-
                 ) {
                     DateText(diaryTitle.value) {
 
@@ -127,11 +151,6 @@ fun DiaryPage() {
                             .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
                     )
                 }
-                val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-                val selectedDate = dateFormatter.parse(diaryTitle.value)
-
-                // 선택한 날짜에 해당하는 일기 리스트를 가져옵니다.
-                diaryViewModel.getDiaryByDate(selectedDate)
 
                 val diaryList = diaryViewModel.diaryList.value
 
@@ -222,7 +241,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
     val dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd") // 날짜 문자열 형식에 맞춰 포맷터를 설정
-    val parsedDate = LocalDate.parse(selectedDate, dateFormatter)
 
     Box(
         modifier = Modifier
@@ -231,22 +249,20 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
             .background(Color.Transparent)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
-            .clickable { // DateText를 클릭할 때 ShowDatePicker() 호출
+            .clickable { // DateText를 클릭할 때 onDateTextClicked() 호출
                 onDateTextClicked()
-
             },
         contentAlignment = Alignment.Center
     ) {
         ShowDatePicker(selectedDate = diaryTitle.value)
         Text(
-            text = AnnotatedString(parsedDate.format(dateFormatter)),
+            text = AnnotatedString(selectedDate),
             color = Color.LightGray,
             fontSize = 20.sp,
             textAlign = TextAlign.Center
         )
     }
 }
-
 
 @Composable
 fun ShowDatePicker(selectedDate: String) {
@@ -277,4 +293,3 @@ fun ShowDatePicker(selectedDate: String) {
         Text("Selected Date: $selectedDate")
     }
 }
-

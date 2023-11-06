@@ -13,5 +13,7 @@ interface DiaryDao : BaseDao<Diary> {
     fun getAll() : Flow<List<Diary>>
 
     @Query("SELECT * FROM diary WHERE date = :selectedDate")
-    fun getDiaryByDate(selectedDate: Date): Flow<List<Diary>>
+    fun getDiaryByDate(selectedDate: Long): Flow<List<Diary>>
+
+
 }
