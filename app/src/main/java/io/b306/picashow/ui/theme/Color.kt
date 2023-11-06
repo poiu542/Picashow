@@ -22,4 +22,4 @@ val TextFieldCursor = Color(0xFFDFDFDF)
 
 // 이모티콘 Color
 val imgPurple = Color(0xFFBE94DF)
-val imgMint = Color(0x72BFBB)
+val imgMint = Color(0xFF72BFBB)

@@ -43,6 +43,8 @@ import io.b306.picashow.ui.page.MainPage
 import io.b306.picashow.ui.theme.MainBackground
 import io.b306.picashow.ui.page.firstPage
 import io.b306.picashow.ui.page.tutorialPage
+import io.b306.picashow.ui.theme.imgMint
+import io.b306.picashow.ui.theme.imgPurple
 import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
 import io.b306.picashow.viewmodel._myInfo
@@ -94,6 +96,8 @@ fun MainScreen(navController: NavHostController) {
             .fillMaxSize()
             .background(MainBackground)  // 전체 배경색을 설정합니다.
     ) {
+        val currentRoute = navController.currentDestination?.route
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -106,7 +110,7 @@ fun MainScreen(navController: NavHostController) {
             flag.value = _myInfo.value?.isTutorial!!
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
             if (showAppBarAndNavBar && flag.value) {
-                val currentRoute = navController.currentDestination?.route
+//                val currentRoute = navController.currentDestination?.route
                 TopAppBar(
                     title = title,
                     showIcon = currentRoute == "secondPage", // secondPage 일 때만 showIcon을 true로 설정
@@ -167,11 +171,11 @@ fun MainScreen(navController: NavHostController) {
                 val bottomNavItems = listOf(
                     BottomNavigationItem(
                         icon = {
-                            val isSelected = navController.currentDestination?.route == "firstPage" // 현재 선택된 아이템이면 true가 됩니다.
                             Image(
                                 painter = painterResource(id = R.drawable.calender),
                                 contentDescription = null,
-                                colorFilter = if (isSelected) ColorFilter.tint(Color.Magenta) else ColorFilter.tint(Color.Green) // 선택 여부에 따라 색상을 설정합니다.
+                                colorFilter = if (currentRoute == "firstPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
+                                    imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "firstPage",
@@ -179,11 +183,11 @@ fun MainScreen(navController: NavHostController) {
                     ),
                     BottomNavigationItem(
                         icon = {
-                            val isSelected = navController.currentDestination?.route == "secondPage" // 현재 선택된 아이템이면 true가 됩니다.
                             Image(
                                 painter = painterResource(id = R.drawable.today),
                                 contentDescription = null,
-                                colorFilter = if (isSelected) ColorFilter.tint(Color.Magenta) else ColorFilter.tint(Color.Green) // 선택 여부에 따라 색상을 설정합니다.
+                                colorFilter = if (currentRoute == "secondPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
+                                    imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
@@ -191,11 +195,11 @@ fun MainScreen(navController: NavHostController) {
                     ),
                     BottomNavigationItem(
                         icon = {
-                            val isSelected = navController.currentDestination?.route == "thirdPage" // 현재 선택된 아이템이면 true가 됩니다.
                             Image(
                                 painter = painterResource(id = R.drawable.paintdiary),
                                 contentDescription = null,
-                                colorFilter = if (isSelected) ColorFilter.tint(Color.Magenta) else ColorFilter.tint(Color.Green) // 선택 여부에 따라 색상을 설정합니다.
+                                colorFilter = if (currentRoute == "thirdPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
+                                    imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "thirdPage",
