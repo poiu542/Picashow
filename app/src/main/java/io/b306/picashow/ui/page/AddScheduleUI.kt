@@ -1,9 +1,9 @@
 package io.b306.picashow.ui.page
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +50,9 @@ import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
+enum class TimePickerType {
+    START, END
+}
 
 @Composable
 fun AddSchedulePage(navController : NavController) {
@@ -72,7 +75,9 @@ fun AddSchedulePage(navController : NavController) {
     val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
     val scheduleName = remember { mutableStateOf("") }
     val content = remember { mutableStateOf("") }
-    var showTimePicker by remember { mutableStateOf(false) }
+
+    // 시간 선택기 상태를 관리할 MutableState를 정의
+    var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
 
     // AlertDialog 상태
     var showDialogTitle by remember { mutableStateOf(false) }
@@ -98,7 +103,7 @@ fun AddSchedulePage(navController : NavController) {
                     .padding(bottom = 0.dp),
                 placeholder = {
                     Text(
-                        text = "제목",
+                        text = "Title",
                         color = PlaceDefault, // 텍스트의 색상을 지정
                         fontSize = 18.sp
                     )
@@ -137,8 +142,8 @@ fun AddSchedulePage(navController : NavController) {
                 ) {
                     Text(
                         color = Color.White,
-                        text = "${selectedStartDate.value.monthValue}월 " +
-                                "${selectedStartDate.value.dayOfMonth}일 " +
+                        text = "${selectedStartDate.value.monthValue} / " +
+                                "${selectedStartDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedStartDate.value.dayOfWeek)})",
                         fontSize = 20.sp
                     )
@@ -163,15 +168,15 @@ fun AddSchedulePage(navController : NavController) {
                 ) {
                     Text(
                         color = Color.White,
-                        text = "${selectedEndDate.value.monthValue}월 " +
-                                "${selectedEndDate.value.dayOfMonth}일 " +
+                        text = "${selectedEndDate.value.monthValue} / " +
+                                "${selectedEndDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedEndDate.value.dayOfWeek)})",
                         fontSize = 21.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -183,7 +188,7 @@ fun AddSchedulePage(navController : NavController) {
                     modifier = Modifier.clickable(
                         onClick = {
                             // Box를 클릭하면 CustomTimePicker의 표시 여부를 토글합니다.
-                            showTimePicker = !showTimePicker
+                            showingTimePicker.value = TimePickerType.START
                         }
                     )
                 ) {
@@ -202,7 +207,7 @@ fun AddSchedulePage(navController : NavController) {
                     modifier = Modifier.clickable(
                         onClick = {
                             // Box를 클릭하면 CustomTimePicker의 표시 여부를 토글합니다.
-                            showTimePicker = !showTimePicker
+                            showingTimePicker.value = TimePickerType.END
                         }
                     )
                 ) {
@@ -216,11 +221,18 @@ fun AddSchedulePage(navController : NavController) {
             }
 
             // 조건부로 CustomTimePicker를 렌더링합니다.
-            if (showTimePicker) {
+            showingTimePicker.value?.let { pickerType ->
                 Spacer(modifier = Modifier.height(16.dp))
                 GrayDivider()
                 Spacer(modifier = Modifier.height(16.dp))
-                CustomTimePicker(selectedHour = selectedStartHour, selectedMinute = selectedStartMinute)
+                when (pickerType) {
+                    TimePickerType.START -> CustomTimePicker(selectedHour = selectedStartHour, selectedMinute = selectedStartMinute) {
+                        showingTimePicker.value = null // Picker를 닫음
+                    }
+                    TimePickerType.END -> CustomTimePicker(selectedHour = selectedEndHour, selectedMinute = selectedEndMinute) {
+                        showingTimePicker.value = null // Picker를 닫음
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -235,7 +247,7 @@ fun AddSchedulePage(navController : NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(
-                        text = "메모",
+                        text = "Content",
                         color = PlaceDefault, // 텍스트의 색상을 지정
                         fontSize = 18.sp
                     )
@@ -281,7 +293,6 @@ fun AddSchedulePage(navController : NavController) {
 
                     if(startDate.after(endDate)) {
                         showDialogDate = true
-                        // TODO - 종료 시간 로직 추가 안 해서 아래 return 하면 안 됨
                         return@Button
                     }
 
@@ -308,12 +319,8 @@ fun AddSchedulePage(navController : NavController) {
                     // 일정 시작 10분 전부터 배경화면 바꾸기
                     scheduleWallpaperChange(context, startDate, url)
 
-                    val currentTimeMillis = System.currentTimeMillis()
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                    val formattedDate = dateFormat.format(Date(currentTimeMillis))
-                    Log.d("CurrentTime", formattedDate)
-
                     // 일정 추가 후 뒤로가기
+                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                     navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -327,7 +334,7 @@ fun AddSchedulePage(navController : NavController) {
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "Schedule name cannot be null!\n일정 제목을 작성해주세요!",
+                    description = "Schedule name cannot be null",
                     onConfirm = {
                         showDialogTitle = false
                     }
@@ -335,7 +342,7 @@ fun AddSchedulePage(navController : NavController) {
             } else if (showDialogDate) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "시작 날짜가 종료 날짜보다 이전입니다. \n근데 이건 개발자가 못 하게 막아야지 -> 다음에 바꿔줌",
+                    description = "End time cannot be earlier than start time",
                     onConfirm = {
                         showDialogDate = false
                     }
@@ -348,13 +355,13 @@ fun AddSchedulePage(navController : NavController) {
 
 fun getDayOfWeek(day: DayOfWeek): String {
     return when (day) {
-        DayOfWeek.MONDAY -> "월"
-        DayOfWeek.TUESDAY -> "화"
-        DayOfWeek.WEDNESDAY -> "수"
-        DayOfWeek.THURSDAY -> "목"
-        DayOfWeek.FRIDAY -> "금"
-        DayOfWeek.SATURDAY -> "토"
-        DayOfWeek.SUNDAY -> "일"
+        DayOfWeek.MONDAY -> "Mon"
+        DayOfWeek.TUESDAY -> "Tue"
+        DayOfWeek.WEDNESDAY -> "Wed"
+        DayOfWeek.THURSDAY -> "Thu"
+        DayOfWeek.FRIDAY -> "Fri"
+        DayOfWeek.SATURDAY -> "Sat"
+        DayOfWeek.SUNDAY -> "Sun"
     }
 }
 

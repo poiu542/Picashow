@@ -1,6 +1,7 @@
 package io.b306.picashow.ui.page
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +47,7 @@ import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Date
 
 @Composable
@@ -67,7 +71,45 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
     val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
     val scheduleName = remember { mutableStateOf("") }
     val content = remember { mutableStateOf("") }
-    var showTimePicker by remember { mutableStateOf(false) }
+
+    // 시간 선택기 상태를 관리할 MutableState를 정의
+    var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
+
+    // 이전에 데이터를 로드했는지 여부를 추적하는 변수
+    var isDataLoaded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(scheduleSeq) {
+        if (!isDataLoaded) {
+            scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
+                // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
+                // 예를 들면:
+                scheduleDetails?.let {
+                    scheduleName.value = it.scheduleName ?: ""
+                    content.value = it.content ?: ""
+
+                    // 날짜 및 시간 설정
+                    it.startDate?.let { startDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val startDateTime = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
+                        selectedStartDate.value = startDateTime
+                        selectedStartHour.value = startDateTime.hour
+                        selectedStartMinute.value = startDateTime.minute
+                    }
+
+                    it.endDate?.let { endDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val endDateTime = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
+                        selectedEndDate.value = endDateTime
+                        selectedEndHour.value = endDateTime.hour
+                        selectedEndMinute.value = endDateTime.minute
+                    }
+                }
+
+                // 데이터가 로드되었음을 표시
+                isDataLoaded = true
+            }
+        }
+    }
 
     // AlertDialog 상태
     var showDialogTitle by remember { mutableStateOf(false) }
@@ -93,7 +135,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     .padding(bottom = 0.dp),
                 placeholder = {
                     Text(
-                        text = "제목",
+                        text = "Title",
                         color = PlaceDefault, // 텍스트의 색상을 지정
                         fontSize = 18.sp
                     )
@@ -132,8 +174,8 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 ) {
                     Text(
                         color = Color.White,
-                        text = "${selectedStartDate.value.monthValue}월 " +
-                                "${selectedStartDate.value.dayOfMonth}일 " +
+                        text = "${selectedStartDate.value.monthValue} / " +
+                                "${selectedStartDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedStartDate.value.dayOfWeek)})",
                         fontSize = 20.sp
                     )
@@ -158,8 +200,8 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 ) {
                     Text(
                         color = Color.White,
-                        text = "${selectedEndDate.value.monthValue}월 " +
-                                "${selectedEndDate.value.dayOfMonth}일 " +
+                        text = "${selectedEndDate.value.monthValue} / " +
+                                "${selectedEndDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedEndDate.value.dayOfWeek)})",
                         fontSize = 21.sp
                     )
@@ -178,7 +220,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     modifier = Modifier.clickable(
                         onClick = {
                             // Box를 클릭하면 CustomTimePicker의 표시 여부를 토글합니다.
-                            showTimePicker = !showTimePicker
+                            showingTimePicker.value = TimePickerType.START
                         }
                     )
                 ) {
@@ -197,7 +239,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     modifier = Modifier.clickable(
                         onClick = {
                             // Box를 클릭하면 CustomTimePicker의 표시 여부를 토글합니다.
-                            showTimePicker = !showTimePicker
+                            showingTimePicker.value = TimePickerType.END
                         }
                     )
                 ) {
@@ -211,11 +253,18 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
             }
 
             // 조건부로 CustomTimePicker를 렌더링합니다.
-            if (showTimePicker) {
+            showingTimePicker.value?.let { pickerType ->
                 Spacer(modifier = Modifier.height(16.dp))
                 GrayDivider()
                 Spacer(modifier = Modifier.height(16.dp))
-                CustomTimePicker(selectedHour = selectedStartHour, selectedMinute = selectedStartMinute)
+                when (pickerType) {
+                    TimePickerType.START -> CustomTimePicker(selectedHour = selectedStartHour, selectedMinute = selectedStartMinute) {
+                        showingTimePicker.value = null // Picker를 닫음
+                    }
+                    TimePickerType.END -> CustomTimePicker(selectedHour = selectedEndHour, selectedMinute = selectedEndMinute) {
+                        showingTimePicker.value = null // Picker를 닫음
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -230,7 +279,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(
-                        text = "메모",
+                        text = "Content",
                         color = PlaceDefault, // 텍스트의 색상을 지정
                         fontSize = 18.sp
                     )
@@ -260,7 +309,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 ),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("취소", fontSize = 20.sp)
+                Text("Cancel", fontSize = 20.sp)
             }
 
             // 저장 버튼
@@ -276,8 +325,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
                     if(startDate.after(endDate)) {
                         showDialogDate = true
-                        // TODO - 종료 시간 로직 추가 안 해서 아래 return 하면 안 됨
-//                        return@Button
+                        return@Button
                     }
 
                     val schedule = Schedule(
@@ -288,8 +336,8 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                         wallpaperUrl = null,
                         content = content.value,
                     )
-                    // 일정 Room에 추가하기 - imageURL은 없음
-                    scheduleViewModel.saveSchedule(schedule)
+                    // 일정 Room 수정하기 - imageURL은 없음
+                    scheduleViewModel.updateSchedule(scheduleSeq, schedule)
                     /* TODO
                         1. FastAPI 요청 보내서 이미지 URL 받기
                         2. 받은 URL schedule 테이블에 update로 넣기
@@ -303,12 +351,10 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     // 일정 시작 10분 전부터 배경화면 바꾸기
                     scheduleWallpaperChange(context, startDate, url)
 
-                    val currentTimeMillis = System.currentTimeMillis()
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                    val formattedDate = dateFormat.format(Date(currentTimeMillis))
-                    Log.d("CurrentTime", formattedDate)
+                    Toast.makeText(context, "The schedule has been modified", Toast.LENGTH_LONG).show()
 
-
+                    // 일정 수정 후 뒤로가기
+                    navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -321,7 +367,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "Schedule name cannot be null!\n일정 제목을 작성해주세요!",
+                    description = "Schedule name cannot be null!",
                     onConfirm = {
                         showDialogTitle = false
                     }
@@ -329,7 +375,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
             } else if (showDialogDate) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "시작 날짜가 종료 날짜보다 이전입니다. \n근데 이건 개발자가 못 하게 막아야지 -> 다음에 바꿔줌",
+                    description = "End time cannot be earlier than start time",
                     onConfirm = {
                         showDialogDate = false
                     }
