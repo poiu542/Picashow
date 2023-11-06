@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -166,9 +167,11 @@ fun MainScreen(navController: NavHostController) {
                 val bottomNavItems = listOf(
                     BottomNavigationItem(
                         icon = {
+                            val isSelected = navController.currentDestination?.route == "firstPage" // 현재 선택된 아이템이면 true가 됩니다.
                             Image(
                                 painter = painterResource(id = R.drawable.calender),
-                                contentDescription = null
+                                contentDescription = null,
+                                colorFilter = if (isSelected) ColorFilter.tint(Color.Magenta) else ColorFilter.tint(Color.Green) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "firstPage",
@@ -176,9 +179,11 @@ fun MainScreen(navController: NavHostController) {
                     ),
                     BottomNavigationItem(
                         icon = {
+                            val isSelected = navController.currentDestination?.route == "secondPage" // 현재 선택된 아이템이면 true가 됩니다.
                             Image(
                                 painter = painterResource(id = R.drawable.today),
-                                contentDescription = null
+                                contentDescription = null,
+                                colorFilter = if (isSelected) ColorFilter.tint(Color.Magenta) else ColorFilter.tint(Color.Green) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
@@ -186,9 +191,11 @@ fun MainScreen(navController: NavHostController) {
                     ),
                     BottomNavigationItem(
                         icon = {
+                            val isSelected = navController.currentDestination?.route == "thirdPage" // 현재 선택된 아이템이면 true가 됩니다.
                             Image(
                                 painter = painterResource(id = R.drawable.paintdiary),
-                                contentDescription = null
+                                contentDescription = null,
+                                colorFilter = if (isSelected) ColorFilter.tint(Color.Magenta) else ColorFilter.tint(Color.Green) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "thirdPage",

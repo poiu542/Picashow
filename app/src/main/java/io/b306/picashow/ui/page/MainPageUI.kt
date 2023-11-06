@@ -233,7 +233,7 @@ fun monthToName(month: Int): String {
 fun Tasks(schedules: List<Schedule>, onTaskClick: (Schedule) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp)
+        contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         item {
             Text(
@@ -262,7 +262,7 @@ fun TaskItem(schedule: Schedule,  onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(vertical = 8.dp)
             .clickable(onClick = onClick) // 클릭 이벤트 처리
             .background(
                 brush = Brush.verticalGradient(
