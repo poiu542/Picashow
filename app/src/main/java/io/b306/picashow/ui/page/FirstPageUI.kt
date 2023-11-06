@@ -102,12 +102,11 @@ fun firstPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp)
+            .padding(start = 10.dp, end = 10.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
         Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 //            ShowDatePicker()
@@ -213,7 +212,7 @@ fun DownLoadDialog() {
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color.Black)
-                        .clickable {}
+                        .clickable { }
                 ) {
                     Divider(
                         color = Color.Gray,
@@ -231,34 +230,41 @@ fun DownLoadDialog() {
                     ) {
                         Text(
                             fontSize = 20.sp,
-                            text = "\uD83D\uDCF1  배경화면으로 설정",
+                            text = "\uD83D\uDCF1  Set as background",
                             color = Color.White,
                             modifier = Modifier.clickable {
+
                                 val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
                                 val inputData = workDataOf("imageUrl" to imageUrl)
                                 val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
                                     .setInputData(inputData)
                                     .build()
                                 WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
-                                Toast.makeText(context, "해당 이미지가 배경화면으로 설정되었습니다.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "The image has been set as the background.", Toast.LENGTH_SHORT).show()
                             },
                         )
 
                         Text(
                             fontSize = 20.sp,
-                            text = "\uD83D\uDD12  잠금화면으로 설정",
+                            text = "\uD83D\uDD12  Set as lock screen",
+                            color = Color.White,
                             modifier = Modifier.clickable {
-                                // 잠금화면으로 설정하는 코드를 여기에 작성하세요
-                            },
-                            color = Color.White
+                                val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
+                                val inputData = workDataOf("imageUrl" to imageUrl, "isLockScreen" to true)
+                                val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
+                                    .setInputData(inputData)
+                                    .build()
+                                WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
+                                Toast.makeText(context, "The image has been set as the lock screen.", Toast.LENGTH_SHORT).show()
+                            }
                         )
 
                         Text(
                             fontSize = 20.sp,
-                            text = "\uD83D\uDDBC️  내 갤러리에 저장",
+                            text = "\uD83D\uDDBC️  Save to my gallery",
                             modifier = Modifier.clickable {
-                                downloadImage(context, selectedImageUrl.value, "배경 화면 다운로드 중", "Downloading images..")
-                                Toast.makeText(context, "다운로드가 진행중입니다.", Toast.LENGTH_SHORT).show()
+                                downloadImage(context, selectedImageUrl.value, "Downloading background image", "Downloading images..")
+                                Toast.makeText(context, "The download is in progress.", Toast.LENGTH_SHORT).show()
                             },
                             color = Color.White
                         )
@@ -295,8 +301,10 @@ fun Dialog() {
                                 builder = { crossfade(true) }
                             ),
                             contentDescription = "인공지능이 생성한 바탕화면",
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
+
                         Box(modifier=Modifier.align(Alignment.BottomCenter)) {
                             Image(
                                 painter=painterResource(id=R.drawable.download),

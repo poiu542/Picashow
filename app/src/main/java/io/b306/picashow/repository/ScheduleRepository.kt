@@ -32,5 +32,11 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
         return scheduleDao.getSchedulesForDate(startTimestamp, endTimestamp)
     }
 
+    fun getScheduleById(id: String): Schedule? {
+        return scheduleDao.getScheduleById(id)
+    }
 
+    suspend fun updateSchedule(schedule: Schedule) {
+        scheduleDao.update(schedule)
+    }
 }

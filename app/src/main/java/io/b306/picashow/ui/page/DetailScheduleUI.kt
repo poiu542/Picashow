@@ -1,7 +1,5 @@
 package io.b306.picashow.ui.page
 
-import android.app.DatePickerDialog
-import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -21,7 +19,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,16 +46,12 @@ import io.b306.picashow.ui.theme.TextFieldCursor
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
-enum class TimePickerType {
-    START, END
-}
 
 @Composable
-fun AddSchedulePage(navController : NavController) {
+fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
     // 의존성 주입
     val context = LocalContext.current
@@ -78,6 +74,42 @@ fun AddSchedulePage(navController : NavController) {
 
     // 시간 선택기 상태를 관리할 MutableState를 정의
     var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
+
+    // 이전에 데이터를 로드했는지 여부를 추적하는 변수
+    var isDataLoaded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(scheduleSeq) {
+        if (!isDataLoaded) {
+            scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
+                // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
+                // 예를 들면:
+                scheduleDetails?.let {
+                    scheduleName.value = it.scheduleName ?: ""
+                    content.value = it.content ?: ""
+
+                    // 날짜 및 시간 설정
+                    it.startDate?.let { startDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val startDateTime = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
+                        selectedStartDate.value = startDateTime
+                        selectedStartHour.value = startDateTime.hour
+                        selectedStartMinute.value = startDateTime.minute
+                    }
+
+                    it.endDate?.let { endDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val endDateTime = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
+                        selectedEndDate.value = endDateTime
+                        selectedEndHour.value = endDateTime.hour
+                        selectedEndMinute.value = endDateTime.minute
+                    }
+                }
+
+                // 데이터가 로드되었음을 표시
+                isDataLoaded = true
+            }
+        }
+    }
 
     // AlertDialog 상태
     var showDialogTitle by remember { mutableStateOf(false) }
@@ -176,7 +208,7 @@ fun AddSchedulePage(navController : NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -304,8 +336,8 @@ fun AddSchedulePage(navController : NavController) {
                         wallpaperUrl = null,
                         content = content.value,
                     )
-                    // 일정 Room에 추가하기 - imageURL은 없음
-                    scheduleViewModel.saveSchedule(schedule)
+                    // 일정 Room 수정하기 - imageURL은 없음
+                    scheduleViewModel.updateSchedule(scheduleSeq, schedule)
                     /* TODO
                         1. FastAPI 요청 보내서 이미지 URL 받기
                         2. 받은 URL schedule 테이블에 update로 넣기
@@ -319,8 +351,9 @@ fun AddSchedulePage(navController : NavController) {
                     // 일정 시작 10분 전부터 배경화면 바꾸기
                     scheduleWallpaperChange(context, startDate, url)
 
-                    // 일정 추가 후 뒤로가기
-                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "The schedule has been modified", Toast.LENGTH_LONG).show()
+
+                    // 일정 수정 후 뒤로가기
                     navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -334,7 +367,7 @@ fun AddSchedulePage(navController : NavController) {
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "Schedule name cannot be null",
+                    description = "Schedule name cannot be null!",
                     onConfirm = {
                         showDialogTitle = false
                     }
@@ -351,36 +384,4 @@ fun AddSchedulePage(navController : NavController) {
         }
 
     }
-}
-
-fun getDayOfWeek(day: DayOfWeek): String {
-    return when (day) {
-        DayOfWeek.MONDAY -> "Mon"
-        DayOfWeek.TUESDAY -> "Tue"
-        DayOfWeek.WEDNESDAY -> "Wed"
-        DayOfWeek.THURSDAY -> "Thu"
-        DayOfWeek.FRIDAY -> "Fri"
-        DayOfWeek.SATURDAY -> "Sat"
-        DayOfWeek.SUNDAY -> "Sun"
-    }
-}
-
-fun showDatePicker(context: Context, dateSetListener: (Int, Int, Int) -> Unit) {
-    val currentDateTime = LocalDateTime.now()
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            dateSetListener(year, month + 1, dayOfMonth)
-        },
-        currentDateTime.year,
-        currentDateTime.monthValue - 1,
-        currentDateTime.dayOfMonth
-    )
-    datePickerDialog.show()
-}
-
-// 선택한 날짜, 시간을 Date 형식으로 바꾸기
-fun combineDateTime(date: LocalDateTime, hour: Int, minute: Int): Date {
-    val combinedDateTime = date.withHour(hour).withMinute(minute)
-    return Date.from(combinedDateTime.atZone(ZoneId.systemDefault()).toInstant())
 }

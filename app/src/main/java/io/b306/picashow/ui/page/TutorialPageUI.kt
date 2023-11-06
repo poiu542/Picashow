@@ -3,6 +3,7 @@ package io.b306.picashow.ui.page
 import android.annotation.SuppressLint
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
@@ -123,7 +124,7 @@ fun mainTutorial() {
                 .align(Alignment.Center)
         ) {
             Text(
-                text = "       Choose the photos you like",
+                text = "Please choose the images you like.",
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
                 color = Color.White,
@@ -141,20 +142,25 @@ fun mainTutorial() {
                 .align(Alignment.BottomCenter)
                 .background(color = Color.Black)
                 .clickable {
-                    flag.value = true
+                    if(selectedImageIndices.isEmpty())  Toast.makeText(context, "Please select one or more preferred images.", Toast.LENGTH_SHORT).show()
+                    else {
+                        flag.value = true
 
-                    var themeList = mutableStateListOf<Theme>()
-                    for (i in selectedImageIndices) {
-                        val selectTheme = Theme(null, tutorialImageUrls[1][i])
-                        themeList.add(selectTheme)
+                        var themeList = mutableStateListOf<Theme>()
+                        for (i in selectedImageIndices) {
+                            val selectTheme = Theme(null, tutorialImageUrls[1][i])
+                            themeList.add(selectTheme)
+                        }
+                        themeViewModel.insertAllThemes(themeList)
+                        val deviceUniqueId = Settings.Secure.getString(
+                            context.contentResolver,
+                            Settings.Secure.ANDROID_ID
+                        )
+
+                        var member = Member(1, true, deviceUniqueId)
+                        memberViewModel.saveMember(member)
+                        Log.d("member = {}", _myInfo.value?.isTutorial.toString())
                     }
-                    themeViewModel.insertAllThemes(themeList)
-                    val deviceUniqueId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-
-                    var member = Member(1, true, deviceUniqueId)
-                    memberViewModel.saveMember(member)
-                    Log.d("member = {}", _myInfo.value?.isTutorial.toString())
-
                 }
         ) {
             var backgroundColor = if (selectedImageIndices.isEmpty()) Color.Gray else teal40
@@ -192,10 +198,10 @@ fun textTutorial() {
         delay(1500L)
 
         isVisible2 = true
-        delay(2000L)
+        delay(3000L)
 
         isVisible2 = false
-        delay(1000L)
+        delay(1500L)
         textTutorialDone.value =true
     }
 
@@ -210,9 +216,10 @@ fun textTutorial() {
                 exit = fadeOut(animationSpec = tween(1500))
             ) {
                 Text(
-                    text = "welcome to free background!",
+                    text = "welcome to free AI background!",
                     color = Color.White,
-                    fontSize = 40.sp
+                    fontSize = 40.sp,
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -222,9 +229,10 @@ fun textTutorial() {
                 exit = fadeOut(animationSpec = tween(1500))
             ) {
                 Text(
-                    text = "골라보랑께!",
+                    text = "For optimal AI background creation, \n \n show your preferences!",
                     color = Color.White,
-                    fontSize = 40.sp
+                    fontSize = 40.sp,
+                    textAlign = TextAlign.Center
                 )
             }
         }
