@@ -60,7 +60,7 @@ import java.util.Date
 import java.util.Locale
 
 val inputDateTime = LocalDateTime.now()
-val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 val formattedDate = inputDateTime.format(formatter)
 var diaryTitle = mutableStateOf(formattedDate)
 
@@ -86,7 +86,7 @@ fun DiaryPage() {
     )
 
     // 날짜 포맷터
-    val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     // 사용자가 선택한 날짜를 String으로 가져옴
     val selectedDateStr = diaryTitle.value
@@ -102,7 +102,8 @@ fun DiaryPage() {
     val diaryList by diaryViewModel.diaryList.observeAsState()
 
     Log.d("selectedDate =", selectedDateStr)
-    Log.d("diaryList =", diaryList?.get(0)?.toString() ?: "Diary 목록이 비어있습니다.")
+    Log.d("selectedDate =", diaryList.toString())
+//    Log.d("diaryList =", diaryList?.get(0)?.toString() ?: "Diary 목록이 비어있습니다.")
 
     Image(diaryViewModel)
 }
@@ -113,6 +114,14 @@ fun DiaryPage() {
 
 @Composable
 fun Image(diaryViewModel: DiaryViewModel) {
+    val diaryList = diaryViewModel.diaryList.value
+    var selectedDiary: Diary? = null
+
+    if (!diaryList.isNullOrEmpty()) {
+        // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
+        selectedDiary = diaryList[0] // 여기에서 첫 번째 일기를 가져옴
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         content = {
@@ -122,7 +131,11 @@ fun Image(diaryViewModel: DiaryViewModel) {
                     dateFormat.format(Date())
                 }
 
-                val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+                var imageUrl = selectedDiary?.url
+                if(imageUrl == null) {
+                    // TODO : 이거 이미지 뭐로 가져올지 정해야 됨
+                    imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+                }
                 val painter = rememberImagePainter(data = imageUrl)
 
                 Box(
@@ -152,11 +165,11 @@ fun Image(diaryViewModel: DiaryViewModel) {
                     )
                 }
 
-                val diaryList = diaryViewModel.diaryList.value
 
-                if (diaryList != null && diaryList.isNotEmpty()) {
+
+                if (!diaryList.isNullOrEmpty()) {
                     // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
-                    val selectedDiary = diaryList[0] // 여기에서 첫 번째 일기를 가져옴
+                    DiaryText(selectedDiary!!)
                 } else {
                     // 선택한 날짜에 일기가 없을 때 새로운 일기를 작성할 수 있도록 UI를 구성합니다.
                     TextPlaceHolder(diaryViewModel)
@@ -166,12 +179,50 @@ fun Image(diaryViewModel: DiaryViewModel) {
     )
 }
 
+
+@Composable
+fun DiaryText(diary : Diary) {
+
+    val content = diary.content
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 제목 출력
+        val titleBoxModifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
+            .padding(4.dp)
+
+        Box(
+            modifier = titleBoxModifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = content.toString(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Transparent),
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                ),
+
+            )
+        }
+    }
+}
+
 @Composable
 fun TextPlaceHolder(viewModel: DiaryViewModel) {
     var text by remember { mutableStateOf("") }
 
     val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
-    val painter = rememberImagePainter(data = imageUrl)
 
     Column(
         modifier = Modifier
@@ -221,9 +272,12 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
     Button(
         onClick = {
             val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            Log.e("에러에러에러", diaryTitle.value)
+            Log.e("에러에러에러", currentDate)
+
             val diary = Diary(
                 diarySeq = null, // autoGenerate로 설정되므로 null로 둡니다.
-                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(currentDate),
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
                 title = text,
                 content = text,
                 url = imageUrl
@@ -240,7 +294,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
 
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
-    val dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd") // 날짜 문자열 형식에 맞춰 포맷터를 설정
 
     Box(
         modifier = Modifier
@@ -278,12 +331,12 @@ fun ShowDatePicker(selectedDate: String) {
             val year = calendar.get(Calendar.YEAR)
 
             // 'selectedDate'를 'yyyy/MM/dd' 형식으로 변경
-            val selectedDateFormatted = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(
-                SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(selectedDate)
-            )
+//            val selectedDateFormatted = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(
+//                SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(selectedDate)
+//            )
 
             DatePickerDialog(context, { _, mYear, mMonth, mDay ->
-                val newSelectedDate = "$mYear/${String.format("%02d", mMonth + 1)}/${String.format("%02d", mDay)}"
+                val newSelectedDate = "$mYear-${String.format("%02d", mMonth + 1)}-${String.format("%02d", mDay)}"
                 diaryTitle.value = newSelectedDate
             }, year, month, day).show()
         }
