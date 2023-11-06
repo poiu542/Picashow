@@ -102,12 +102,11 @@ fun firstPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp)
+            .padding(start = 10.dp, end = 10.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
         Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 //            ShowDatePicker()
