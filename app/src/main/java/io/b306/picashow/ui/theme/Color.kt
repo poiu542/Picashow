@@ -19,3 +19,7 @@ val PlaceDefault = Color(0xFF989898)
 
 // cursor
 val TextFieldCursor = Color(0xFFDFDFDF)
+
+// 이모티콘 Color
+val imgPurple = Color(0xFFBE94DF)
+val imgMint = Color(0x72BFBB)

@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +48,7 @@ import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Diary
 import io.b306.picashow.repository.DiaryRepository
 import io.b306.picashow.repository.MemberRepository
+import io.b306.picashow.ui.theme.teal40
 import io.b306.picashow.viewmodel.DiaryViewModel
 import io.b306.picashow.viewmodel.DiaryViewModelFactory
 import io.b306.picashow.viewmodel.MemberViewModel
@@ -285,6 +287,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            ,
+        colors = ButtonDefaults.buttonColors(teal40)
     ) {
         Text(text = "일기 저장")
     }
