@@ -52,7 +52,6 @@ import io.b306.picashow.viewmodel.DiaryViewModelFactory
 import io.b306.picashow.viewmodel.MemberViewModel
 import io.b306.picashow.viewmodel.MemberViewModelFactory
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -161,7 +160,6 @@ fun Image(diaryViewModel: DiaryViewModel) {
                             .fillMaxWidth()
                             .height(350.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
                     )
                 }
 

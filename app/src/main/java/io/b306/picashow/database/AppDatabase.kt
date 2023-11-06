@@ -21,7 +21,7 @@ import io.b306.picashow.entity.Wallpaper
 
 @Database(
     entities = [Member::class, Diary::class, Schedule::class, Wallpaper::class, Theme::class],
-    version = 14,                // <- Database version
+    version = 15,                // <- Database version
     exportSchema = true
 )
 @TypeConverters(Converters::class) // Type Converter를 추가합니다.
