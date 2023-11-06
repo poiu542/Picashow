@@ -30,7 +30,7 @@ fun TopAppBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 2.dp), // Icon을 포함한 모든 요소의 상하 패딩을 조절합니다.
+            .padding(top = 10.dp), // Icon을 포함한 모든 요소의 상하 패딩을 조절합니다.
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically // Row 내의 모든 요소를 세로 중앙 정렬합니다.
     ) {
