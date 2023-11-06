@@ -362,7 +362,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 ),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("저장", fontSize = 20.sp)
+                Text("Save", fontSize = 20.sp)
             }
             if (showDialogTitle) {
                 CustomAlertDialog(

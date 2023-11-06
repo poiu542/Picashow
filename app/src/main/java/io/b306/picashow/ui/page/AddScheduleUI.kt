@@ -277,7 +277,7 @@ fun AddSchedulePage(navController : NavController) {
                 ),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("취소", fontSize = 20.sp)
+                Text("Cancel", fontSize = 20.sp)
             }
 
             // 저장 버튼
@@ -329,7 +329,7 @@ fun AddSchedulePage(navController : NavController) {
                 ),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("저장", fontSize = 20.sp)
+                Text("Save", fontSize = 20.sp)
             }
             if (showDialogTitle) {
                 CustomAlertDialog(
