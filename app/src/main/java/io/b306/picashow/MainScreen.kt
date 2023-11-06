@@ -3,12 +3,16 @@ package io.b306.picashow
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -96,11 +101,24 @@ fun MainScreen(navController: NavHostController) {
             flag.value = _myInfo.value?.isTutorial!!
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
             if (showAppBarAndNavBar && flag.value) {
+                val currentRoute = navController.currentDestination?.route
                 TopAppBar(
                     title = title,
-                    onAddClick = {
-                        if(navController.currentDestination?.route == "secondPage") {
-                            navController.navigate("addSchedulePage")
+                    showIcon = currentRoute == "secondPage", // secondPage 일 때만 showIcon을 true로 설정
+                    endContent = {
+                        when (currentRoute) {
+                            "secondPage" -> {
+                                // 두 번째 페이지에서는 추가 버튼을 표시합니다.
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "Add",
+                                    tint = Color.White,
+                                    modifier = Modifier.clickable {
+                                        navController.navigate("addSchedulePage")
+                                    }
+                                )
+                            }
+                            else -> Box {} // 다른 페이지에서는 아무것도 표시하지 않습니다.
                         }
                     }
                 )

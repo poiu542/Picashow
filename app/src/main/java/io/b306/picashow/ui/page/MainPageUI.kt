@@ -104,8 +104,7 @@ fun MainPage(navController : NavController) {
             }
             Log.e("SelectedDay", "Selected day is: $selectedMonth/$selectedDay")
 
-            // TODO selectedMonth, Day를 사용해서 그 날짜에 해당하는 Task를 Room에서 불러오면 됨(코루틴 비둘기 써서)
-            // 선택된 날짜의 데이터를 가져옵니다.
+            // 선택된 날짜의 데이터를 Room에서 가져옴
             scheduleViewModel.fetchSchedulesForDate(currentYear, selectedMonth, selectedDay)
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -113,7 +112,7 @@ fun MainPage(navController : NavController) {
         val schedules by scheduleViewModel.schedules.observeAsState(emptyList())
 
         Tasks(schedules, onTaskClick = { schedule ->
-            // TODO: 상세 페이지로 이동하는 로직
+            // 상세 페이지로 이동
             navController.navigate("detailPage/${schedule.scheduleSeq}")
         })
     }
