@@ -1,4 +1,8 @@
 import os
+import sys
+sys.path.append('C:\\Users\\SSAFY\\Documents\\SSAFY\\S09P31B101\\WebUIAPI\\app')
+sys.path.append('C:\\Users\\SSAFY\\Documents\\SSAFY\\S09P31B101\\WebUIAPI')
+
 from dotenv import load_dotenv
 import uvicorn
 from fastapi import FastAPI
