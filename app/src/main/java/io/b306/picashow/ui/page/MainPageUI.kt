@@ -93,7 +93,9 @@ fun MainPage(navController : NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(
+                start = 16.dp,
+                end = 16.dp)
     ) {
         Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal ->
             selectedDay = newSelectedDay
@@ -134,9 +136,9 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
     val dayNames = getWeekDayNamesBasedOnStartDay(year, month, startDay)
 
     Text(text = monthToName(month), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-    Spacer(modifier = Modifier.height(8.dp))
-    ShowTimePicker()
-    ShowDatePicker()
+    Spacer(modifier = Modifier.height(16.dp))
+//    ShowTimePicker()
+//    ShowDatePicker()
 
     val lazyListState = rememberLazyListState()
 

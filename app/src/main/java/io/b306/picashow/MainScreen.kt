@@ -96,7 +96,11 @@ fun MainScreen(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(
+                    top = 8.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                )
         ) {
             flag.value = _myInfo.value?.isTutorial!!
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
