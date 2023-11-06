@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import io.b306.picashow.converter.Converters
 import io.b306.picashow.dao.DiaryDao
 import io.b306.picashow.dao.MemberDao
 import io.b306.picashow.dao.ScheduleDao
@@ -19,9 +21,10 @@ import io.b306.picashow.entity.Wallpaper
 
 @Database(
     entities = [Member::class, Diary::class, Schedule::class, Wallpaper::class, Theme::class],
-    version = 14,                // <- Database version
+    version = 15,                // <- Database version
     exportSchema = true
 )
+@TypeConverters(Converters::class) // Type Converter를 추가합니다.
 abstract class AppDatabase: RoomDatabase() { // <- Add 'abstract' keyword and extends RoomDatabase
     abstract fun memberDao() : MemberDao
     abstract fun diaryDao() : DiaryDao
