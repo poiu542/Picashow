@@ -77,7 +77,11 @@ def getList(page: int = Query(default=1)):
 @router.get("/list/{theme}")
 def getThemeList(theme: str = Path(), page: int = Query(default=1)):
 
+    if page <= 0:
+        raise HTTPException(status_code=404, detail="page not found")
+
     collection = client.final.wallpaper
+
     page_number = page
     limit = 15
 
