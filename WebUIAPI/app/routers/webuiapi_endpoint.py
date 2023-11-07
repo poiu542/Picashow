@@ -35,18 +35,20 @@ def sendAPI(requestBody: ImagePrompt.ImagePrompt):
     if len(requestBody.input_text) <= 0:
         raise HTTPException(status_code=422, detail="input length supposed to be greater than 0")
     theme_list = [
-        {"PrgXL_V1": "<lora:PrgXL_V1:1>"},
-        {"Featastic2": "<lora:FaeTastic2:1> Faetastic"},
-        {"ghibli_last": "<lora:ghibli_last:1> ghibli"},
-        {"sdxl-1.0_makoto-shinkai": "<lora:sdxl-1.0_makoto-shinkai:1> by Makoto Shinkai"},
-        {"v0ng44g, p14nt1ng": "<lora:v0ng44g, p14nt1ng:1> v0ng44g, p14nt1ng"},
-        {"p1c4ss0_003-step00028000": "<lora:p1c4ss0_003-step00028000:1> p1c4ss0"},
-        {"edgRenaissanceXL": "<lora:edgRenaissanceXL:1> painted in renaissance style"}
+        {"realistic": "<lora:PrgXL_V1:1>"},
+        {"fantasy": "<lora:FaeTastic2:1> Faetastic"},
+        {"ghibli": "<lora:ghibli_last:1> ghibli"},
+        {"animation": "<lora:sdxl-1.0_makoto-shinkai:1> by Makoto Shinkai"},
+        {"van gogh": "<lora:v0ng44g, p14nt1ng:1> v0ng44g, p14nt1ng"},
+        {"picasso": "<lora:p1c4ss0_003-step00028000:1> p1c4ss0"},
+        {"europe": "<lora:edgRenaissanceXL:1> painted in renaissance style"}
     ]
 
     input = "'" + requestBody.input_text + "' 바탕으로 이미지 프롬프트를 영어로 만들어줘. 다른 말은 하지마"
 
     theme = get_value_from_key(theme_list, requestBody.user_theme)
+    if theme == "":
+        theme = "<lora:PrgXL_V1:1>"
 
     # main.logger.info("test")
     # api_key = os.getenv("OPENAI_API_KEY")
