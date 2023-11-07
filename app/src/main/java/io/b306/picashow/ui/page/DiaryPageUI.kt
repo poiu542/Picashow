@@ -192,7 +192,12 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
 @Composable
 fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
     var isEditing by remember { mutableStateOf(false) } // 일기 수정 모드를 나타내는 상태 값
-    var updatedContent by remember { mutableStateOf(diary.content ?: "") }
+    var editText by remember(diary) { mutableStateOf(diary.content) } // 일기 수정 내용을 나타내는 상태 값
+
+    // diary.content 값이 변경될 때마다 editText 값을 업데이트
+    LaunchedEffect(diary.content) {
+        editText = diary.content
+    }
 
     Column(
         modifier = Modifier
@@ -213,7 +218,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
         ) {
             if (!isEditing) {
                 Text(
-                    text = updatedContent,
+                    text = diary.content ?: "",
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Transparent),
@@ -225,8 +230,8 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                 )
             } else {
                 BasicTextField(
-                    value = updatedContent,
-                    onValueChange = { newText -> updatedContent = newText },
+                    value = editText ?: "",
+                    onValueChange = { newText -> editText = newText },
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Transparent),
@@ -236,7 +241,6 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                         textAlign = TextAlign.Center
                     ),
                     cursorBrush = SolidColor(Color.White),
-                    visualTransformation = VisualTransformation.None
                 )
             }
         }
@@ -264,8 +268,8 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                 Button(
                     onClick = {
                         // 완료 버튼을 클릭했을 때 실행될 동작을 정의합니다.
-                        diary.content = updatedContent
-                        diaryViewModel.updateDiary(diary)
+                        diary.content = editText
+                        diaryViewModel.updateDiary(diary) // 데이터베이스 업데이트
                         isEditing = false
                     },
                     modifier = Modifier
@@ -279,6 +283,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                 Button(
                     onClick = {
                         // 취소 버튼을 클릭했을 때 실행될 동작을 정의합니다.
+                        editText = diary.content ?: "" // 원래의 일기 내용으로 되돌림
                         isEditing = false
                     },
                     modifier = Modifier
@@ -292,6 +297,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
         }
     }
 }
+
 
 
 @Composable
