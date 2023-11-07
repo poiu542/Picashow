@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 import app.main as main
 main.load_dotenv()
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 import math
 
 
@@ -17,16 +17,21 @@ client = MongoClient(mongodb_URI)
 # 배경화면 다운로드 시 유저 등록 API
 @router.post("/download")
 def registUser():
+    # collection = client.final.wallpaper
+
+
     return True
 
 
 # 배경화면 조회 API
 @router.get("/list")
-def getList(q: int = Query(default=1)):
+def getList(page: int = Query(default=1)):
     # mongodb_URI = "localhost:27017"
     collection = client.final.wallpaper
+    if page <= 0:
+        raise HTTPException(status_code=404, detail="page not found")
 
-    page_number = q
+    page_number = page
     page_size = 15
 
     image_url_list = (collection
@@ -34,6 +39,8 @@ def getList(q: int = Query(default=1)):
                       .skip((page_number-1)*page_size)
                       .limit(page_size))
 
+    print(page_number)
+    print(page_size)
 
     total_pages = math.ceil(collection.count_documents({}) / page_size)
 
