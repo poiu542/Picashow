@@ -9,6 +9,8 @@ import app.main as main
 import os
 import openai
 from fastapi import APIRouter
+from urllib import request
+
 router = APIRouter()
 
 main.load_dotenv()
@@ -58,7 +60,6 @@ def sendAPI(requestBody: ImagePrompt.ImagePrompt):
                                   seed=-1,
                                   cfg_scale=7,
                                   override_settings={
-                                      # "sd_model_checkpoint": "majicmixRealistic_v7.safetensors [7c819b6d13]"
                                       "sd_model_checkpoint": "sd_xl_base_1.0.safetensors [31e35c80fc]"
                                   },
                                   sampler_index="DDIM",
@@ -71,6 +72,28 @@ def sendAPI(requestBody: ImagePrompt.ImagePrompt):
     image_bytes = BytesIO()
     image.save(image_bytes, format='png')
 
+    image_url = s3.upload(image_bytes, s3.connection(), theme)
+
+    return image_url
+
+
+@router.post("/image/dalle")
+def sendAPItoDallE3(requestBody: ImagePrompt.ImagePrompt):
+    client = openai.OpenAI()
+    theme = requestBody.user_theme
+
+    input = requestBody.input_text + "라는 주제를 " + theme + " 느낌으로 생성해줘"
+
+    response = client.images.generate(
+        model="dall-e-3",
+        prompt=input,
+        size="1024x1024",
+        quality="standard",
+        n=1,
+    )
+
+    res = request.urlopen(response.data[0].url).read()
+    image_bytes = BytesIO(res)
     image_url = s3.upload(image_bytes, s3.connection(), theme)
 
     return image_url
