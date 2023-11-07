@@ -121,13 +121,21 @@ fun firstPage() {
 
 suspend fun randomImage() {
     try {
-        val response = ApiObject.ImageService.getRandomImages("93YL0o_9XZVVDjcByIys84JINkWnLKTGXML9PNMXES4")
-        val urlList = response.body()?.urls
-        urlList?.let { imageUrls.add(it.raw)}
-    }catch (e: Exception) {
+        val response = ApiObject.ImageService.getAllImages()
+        val urlList = response.body()?.list
+
+        // Check if the list is not null and not empty
+        if (!urlList.isNullOrEmpty()) {
+            // Extract the URLs
+            val urls = urlList.map { it.url }
+
+            // Now add these URLs into the imageUrls list
+            imageUrls.addAll(urls)
+        }
+
+    } catch (e: Exception) {
         Log.d("randomImage 오류 발생",e.printStackTrace().toString())
     }
-
 }
 
 @Composable
