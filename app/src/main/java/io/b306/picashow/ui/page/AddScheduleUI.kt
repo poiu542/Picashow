@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,12 +20,14 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
+import io.b306.picashow.api.ApiObject
+import io.b306.picashow.api.image.CreateImageRequest
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.ScheduleRepository
@@ -45,6 +51,10 @@ import io.b306.picashow.ui.theme.PlaceDefault
 import io.b306.picashow.ui.theme.TextFieldCursor
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDateTime
@@ -82,6 +92,41 @@ fun AddSchedulePage(navController : NavController) {
     // AlertDialog 상태
     var showDialogTitle by remember { mutableStateOf(false) }
     var showDialogDate by remember { mutableStateOf(false) }
+
+    ///////////////////////////////////////////////////////////////
+    ////                     이미지 생성                        /////
+    ///////////////////////////////////////////////////////////////
+    // Composable 스코프 내에서 코루틴을 시작하기 위한 스코프를 얻습니다.
+//    val coroutineScope = rememberCoroutineScope()
+//
+//    // 상태 관리를 위한 변수
+//    var imageUrl by remember { mutableStateOf<String?>(null) }
+//    var isLoading by remember { mutableStateOf(false) }
+//    var error by remember { mutableStateOf<String?>(null) }
+//
+//    // 이미지 생성 요청
+//    fun createImage(inputText: String, userTheme: String) {
+//        isLoading = true
+//        coroutineScope.launch {
+//            try {
+//                val response = ApiObject.ImageService.createImage(CreateImageRequest(inputText, userTheme))
+//                if (response.isSuccessful) {
+//                    // 서버로부터 받은 이미지 URL을 상태에 저장
+//                    imageUrl = response.body()
+//                } else {
+//                    // 에러 메시지 처리
+//                    error = "Error: ${response.errorBody()?.string()}"
+//                }
+//            } catch (e: Exception) {
+//                error = e.localizedMessage
+//            } finally {
+//                isLoading = false
+//            }
+//        }
+//    }
+    ///////////////////////////////////////////////////////////////
+    ////                     이미지 생성                        /////
+    ///////////////////////////////////////////////////////////////
 
 
     Box(
@@ -309,15 +354,41 @@ fun AddSchedulePage(navController : NavController) {
                     /* TODO
                         1. FastAPI 요청 보내서 이미지 URL 받기
                         2. 받은 URL schedule 테이블에 update로 넣기
-                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기
+                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기-해결
                         * 주의사항
-                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
+                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯-ㄴㄴ이거알아서됨
                     */
-                    val url = "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg"
-                    val url2 = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRu3WFtOVor0CH59xCanFxZ21wDCyUueV7jPg&usqp=CAU"
+//                    createImage(scheduleName.value, "지브리")
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // 사용자가 대기하지 않아도 되도록 withContext로 네트워크 호출을 백그라운드에서 수행합니다.
+                        val url = withContext(Dispatchers.IO) {
+                            try {
+                                // createImage 함수를 비동기적으로 호출하고 결과를 받아옵니다.
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "ghibli"))
+                                if (response.isSuccessful) {
+                                    // 성공적으로 URL을 받아옵니다.
+                                    response.body() ?: ""
+                                    Log.e("불러온 이미지 url 리스바리", response.body().toString())
+                                    Log.e("불러온 이미지 url", this.toString())
+                                } else {
+//                                    Toast.makeText(context, "이미지 생성 오류", Toast.LENGTH_LONG).show()
+                                    Log.e("이미지 생성 오류", "ㄲㅂ")
+                                }
+                            } catch (e: Exception) {
+//                                Toast.makeText(context, "이미지 생성 예외 발생", Toast.LENGTH_LONG).show()
+                                Log.e("이미지 생성 예외", "ㄲㅂ")
+                            }
+                        }
+
+                        // URL을 받아온 후에 실행할 작업
+                        if (url.toString().isNotEmpty()) {
+                            scheduleWallpaperChange(context, startDate, url.toString())
+                        }
+                    }
+
 
                     // 일정 시작 10분 전부터 배경화면 바꾸기
-                    scheduleWallpaperChange(context, startDate, url)
+//                    scheduleWallpaperChange(context, startDate, url)
 
                     // 일정 추가 후 뒤로가기
                     Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
@@ -331,6 +402,7 @@ fun AddSchedulePage(navController : NavController) {
             ) {
                 Text("Save", fontSize = 20.sp)
             }
+
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",

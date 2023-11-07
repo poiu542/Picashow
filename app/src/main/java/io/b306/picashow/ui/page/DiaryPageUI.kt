@@ -106,7 +106,7 @@ fun DiaryPage() {
     Log.d("selectedDate =", diaryList.toString())
 //    Log.d("diaryList =", diaryList?.get(0)?.toString() ?: "Diary 목록이 비어있습니다.")
 
-    Image(diaryViewModel)
+    ImageCompo(diaryViewModel)
 }
 
 
@@ -114,7 +114,7 @@ fun DiaryPage() {
 
 
 @Composable
-fun Image(diaryViewModel: DiaryViewModel) {
+fun ImageCompo(diaryViewModel: DiaryViewModel) {
     val diaryList = diaryViewModel.diaryList.value
     var selectedDiary: Diary? = null
 
