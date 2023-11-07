@@ -9,7 +9,7 @@ import app.main as main
 import os
 import openai
 from openai import OpenAI
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from urllib import request
 
 router = APIRouter()
@@ -32,6 +32,8 @@ def get_value_from_key(theme_list, key):
 # 배경화면 생성 API
 @router.post("/image")
 def sendAPI(requestBody: ImagePrompt.ImagePrompt):
+    if len(requestBody.input_text) <= 0:
+        raise HTTPException(status_code=422, detail="input length supposed to be greater than 0")
     theme_list = [
         {"PrgXL_V1": "<lora:PrgXL_V1:1>"},
         {"Featastic2": "<lora:FaeTastic2:1> Faetastic"},
@@ -93,6 +95,9 @@ def sendAPI(requestBody: ImagePrompt.ImagePrompt):
 
 @router.post("/image/dalle")
 def sendAPItoDallE3(requestBody: ImagePrompt.ImagePrompt):
+    if len(requestBody.input_text) <= 0:
+        raise HTTPException(status_code=422, detail="input length supposed to be greater than 0")
+
     client = openai.OpenAI()
     theme = requestBody.user_theme
 
