@@ -1,5 +1,6 @@
 package io.b306.picashow.ui.page
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -72,7 +73,9 @@ val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 val formattedDate = inputDateTime.format(formatter)
 var diaryTitle = mutableStateOf(formattedDate)
 var diaryDatePickerFlag = mutableStateOf(false)
-@OptIn(ExperimentalPagerApi::class)
+var targetPage = mutableStateOf(999999)
+var changeCheck= mutableStateOf(false)
+
 @Composable
 fun DiaryPage() {
     // 의존성 주입
@@ -86,14 +89,6 @@ fun DiaryPage() {
         factory = diaryViewModelFactory
     )
 
-    val memberDao = AppDatabase.getDatabase(context).memberDao()
-    val memberRepository = MemberRepository(memberDao)
-    val memberViewModelFactory = MemberViewModelFactory(memberRepository)
-
-    val memberViewModel = viewModel<MemberViewModel>(
-        factory = memberViewModelFactory
-    )
-
     // 날짜 포맷터
     val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
@@ -102,26 +97,7 @@ fun DiaryPage() {
 
     // 선택한 날짜를 Date로 변환
     val selectedDate = dateFormatter.parse(selectedDateStr)
-
-    // 선택한 날짜에 해당하는 일기 리스트를 가져옵니다.
-//    LaunchedEffect(selectedDateStr) {
-//        diaryViewModel.getDiaryByDate(selectedDate.time)
-//        Log.d("now time=", selectedDate.time.toString()) // Date 객체에서 time을 사용하여 Long으로 변환
-//    }
-    val diaryList by diaryViewModel.diaryList.observeAsState()
-
-//    Log.d("diaryList =", diaryList?.get(0)?.toString() ?: "Diary 목록이 비어있습니다.")
-
-    val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
-    val coroutineScope = rememberCoroutineScope()
-
-    HorizontalPager(state = pagerState) { page ->
-        val date = LocalDate.now().plusDays(page.toLong() - 1000000L)
-        diaryTitle.value = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-
         Image(diaryViewModel = diaryViewModel) // 페이지별로 Image를 그립니다.
-    }
-
     var previousDate by remember { mutableStateOf("") }
 
     LaunchedEffect(diaryTitle.value) {
@@ -130,90 +106,89 @@ fun DiaryPage() {
             previousDate = diaryTitle.value
         }
     }
-
-//    ShowDatePicker(selectedDate = diaryTitle.value) {
-//        val calendar: Calendar = Calendar.getInstance()
-//        val day = calendar.get(Calendar.DAY_OF_MONTH)
-//        val month = calendar.get(Calendar.MONTH)
-//        val year = calendar.get(Calendar.YEAR)
-//
-//        DatePickerDialog(context, { _, mYear, mMonth, mDay ->
-//            val newSelectedDate = LocalDate.of(mYear, mMonth + 1, mDay)
-//            diaryTitle.value = newSelectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-//            val targetPage = (newSelectedDate.toEpochDay() - LocalDate.now().toEpochDay()).toInt() + 999999
-//            coroutineScope.launch {
-//                pagerState.scrollToPage(targetPage)
-//            }
-//        }, year, month, day).show()
-//    }
-    ShowDatePicker(diaryTitle.value)
+    if(diaryDatePickerFlag.value) {ShowDatePicker(diaryTitle.value); diaryDatePickerFlag.value=false}
 }
 
 
 
 
+@SuppressLint("CoroutineCreationDuringComposition")
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun Image(diaryViewModel: DiaryViewModel) {
     val diaryList = diaryViewModel.diaryList.value
     var selectedDiary: Diary? = null
-
+    val coroutineScope = rememberCoroutineScope()
     if (!diaryList.isNullOrEmpty()) {
         // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
         selectedDiary = diaryList[0] // 여기에서 첫 번째 일기를 가져옴
     }
+    val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        content = {
-            item {
-                val currentDate = remember {
-                    val dateFormat = SimpleDateFormat("M월 d일 EEEE", Locale.getDefault())
-                    dateFormat.format(Date())
-                }
+    HorizontalPager(state = pagerState) { page ->
+        val date = LocalDate.now().plusDays(page.toLong() - 1000000L)
+        diaryTitle.value = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        if(changeCheck.value) {
+            coroutineScope.launch {
+                pagerState.scrollToPage(targetPage.value)
+                changeCheck.value = false
+            }
 
-                var imageUrl = selectedDiary?.url
-                if(imageUrl == null) {
-                    // TODO : 이거 이미지 뭐로 가져올지 정해야 됨
-                    imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
-                }
-                val painter = rememberImagePainter(data = imageUrl)
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                ) {
-                    DateText(diaryTitle.value) {
-
+        }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            content = {
+                item {
+                    val currentDate = remember {
+                        val dateFormat = SimpleDateFormat("M월 d일 EEEE", Locale.getDefault())
+                        dateFormat.format(Date())
                     }
-                }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp)
-                ) {
-                    Image(
-                        contentScale = ContentScale.Crop,
-                        painter = painter,
-                        contentDescription = null,
+                    var imageUrl = selectedDiary?.url
+                    if (imageUrl == null) {
+                        // TODO : 이거 이미지 뭐로 가져올지 정해야 됨
+                        imageUrl =
+                            "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+                    }
+                    val painter = rememberImagePainter(data = imageUrl)
+
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(350.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                    )
-                }
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    ) {
+                        DateText(diaryTitle.value) {
 
-                if (!diaryList.isNullOrEmpty()) {
-                    // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
-                    DiaryText(selectedDiary!!)
-                } else {
-                    // 선택한 날짜에 일기가 없을 때 새로운 일기를 작성할 수 있도록 UI를 구성합니다.
-                    TextPlaceHolder(diaryViewModel)
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp)
+                    ) {
+                        Image(
+                            contentScale = ContentScale.Crop,
+                            painter = painter,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(350.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                        )
+                    }
+
+                    if (!diaryList.isNullOrEmpty()) {
+                        // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
+                        DiaryText(selectedDiary!!)
+                    } else {
+                        // 선택한 날짜에 일기가 없을 때 새로운 일기를 작성할 수 있도록 UI를 구성합니다.
+                        TextPlaceHolder(diaryViewModel)
+                    }
                 }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
@@ -371,10 +346,7 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ShowDatePicker(selectedDate: String) {
-    if(diaryDatePickerFlag.value) {
         val context = LocalContext.current
-        val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
-        val coroutineScope = rememberCoroutineScope()
 
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -388,11 +360,9 @@ fun ShowDatePicker(selectedDate: String) {
                             val newSelectedDate = LocalDate.of(mYear, mMonth + 1, mDay)
                             diaryTitle.value =
                                 newSelectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                            val targetPage = (newSelectedDate.toEpochDay() - LocalDate.now()
+                             targetPage.value = (newSelectedDate.toEpochDay() - LocalDate.now()
                                 .toEpochDay()).toInt() + 999999
-                            coroutineScope.launch {
-                                pagerState.scrollToPage(targetPage)
-                            }
+                            changeCheck.value = true
                         }, year, month, day).show()
                     }
 
@@ -404,7 +374,7 @@ fun ShowDatePicker(selectedDate: String) {
                         .padding(start = 8.dp)
                 )
             }
-        }
+
     }
 
 
