@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,9 +54,6 @@ fun BottomNavigationItemComposable(
         contentAlignment = Alignment.Center
     ) {
         icon()
-        if (selected) {
-            // 선택된 아이템을 시각적으로 표시하기 위한 로직 (예: 아이콘의 색 변경)
-        }
     }
 }
 
