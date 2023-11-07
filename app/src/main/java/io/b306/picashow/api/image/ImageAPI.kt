@@ -10,9 +10,9 @@ interface ImageAPI {
 
     // 일일 계획에 대한 이미지를 가져옵니다.
     @GET("list")
-    suspend fun getAllImages(): Response<ImageResponse>
+    suspend fun getAllImages(@Query("page") page: Int): Response<ImageResponse>
 
     // 서버에 등록된 전체 이미지를 가져옵니다.
-    @GET("image/all")
-    suspend fun getAllImages(@Body request: ImageRequest): Response<List<ImageResponse>>
+//    @GET("image/all")
+//    suspend fun getAllImages(@Body request: ImageRequest): Response<List<ImageResponse>>
 }
