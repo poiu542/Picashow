@@ -1,5 +1,6 @@
 package io.b306.picashow.ui.page
 
+import android.app.DatePickerDialog
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -61,7 +62,7 @@ import java.util.Locale
 import kotlin.time.Duration.Companion.minutes
 
 //class MainPageUI {
-//}
+//}`
 
 @Composable
 fun MainPage(navController : NavController) {
@@ -95,11 +96,12 @@ fun MainPage(navController : NavController) {
             .fillMaxSize()
             .padding(
                 start = 16.dp,
-                end = 16.dp)
+                end = 16.dp
+            )
     ) {
-        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal ->
+        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal, check ->
             selectedDay = newSelectedDay
-            selectedMonth = if(selectedDay < currentDay) {
+            selectedMonth = if(selectedDay < currentDay && check) {
                 selectedMonthLocal + 1
             } else {
                 selectedMonthLocal
@@ -121,9 +123,21 @@ fun MainPage(navController : NavController) {
 }
 
 @Composable
-fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int, Int) -> Unit) {
+fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int, Int, Boolean) -> Unit) {
     val daysInMonth = daysInMonth(year, month)
     val daysToShow = mutableListOf<Int?>()
+    val context = LocalContext.current
+    // 날짜 선택 상태를 저장하기 위한 mutable state
+    var (selectedDate, setSelectedDate) = remember { mutableStateOf(LocalDate.of(year, month, selectedDay)) }
+    var displayMonth by remember { mutableStateOf(month) }
+
+    val dayNames = getWeekDayNamesBasedOnStartDay(year, month, startDay)
+    var showDatePicker by remember { mutableStateOf(false) }
+//    val selectedMonth = if(selectedDay < startDay) {
+//        month + 1
+//    } else {
+//        month
+//    }
 
     for (i in 0 until 30) {
         val currentDay = startDay + i
@@ -133,11 +147,33 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
             daysToShow.add(currentDay - daysInMonth)  // 다음 달의 날짜로 업데이트
         }
     }
-    val dayNames = getWeekDayNamesBasedOnStartDay(year, month, startDay)
 
-    Text(text = monthToName(month), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            context,
+            { _, selectedYear, selectedMonthOfYear, dayOfMonth ->
+                val actualMonth = selectedMonthOfYear + 1
+                val newSelectedDate = LocalDate.of(selectedYear, actualMonth, dayOfMonth)
+                setSelectedDate(newSelectedDate) // 선택된 날짜 상태 업데이트
+                displayMonth = actualMonth
+                onDaySelected(dayOfMonth, actualMonth, false)
+                showDatePicker = false // DatePickerDialog 닫기
+            },
+            selectedDate.year,
+            selectedDate.monthValue - 1, // DatePicker에서 월이 0부터 시작하므로 실제 월에서 1을 뺍니다.
+            selectedDate.dayOfMonth
+        ).show()
+    }
+
+    Text(
+        text = "${selectedDate.year} / $displayMonth / ${selectedDate.dayOfMonth}",
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        color = Color.White,
+        modifier = Modifier.clickable { showDatePicker = true }  // Text를 클릭하면 DatePickerDialog를 표시
+    )
     Spacer(modifier = Modifier.height(16.dp))
-//    ShowTimePicker()
 //    ShowDatePicker()
 
     val lazyListState = rememberLazyListState()
@@ -149,9 +185,17 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
         verticalAlignment = Alignment.CenterVertically
     ) {
         itemsIndexed(daysToShow) { index, day ->
-            DayWithBackground(day, dayNames[index], day == selectedDay) {
+            DayWithBackground(day, dayNames[index], day == selectedDate.dayOfMonth) { // Change comparison to selectedDate
                 day?.let {
-                    onDaySelected(it, month)
+                    // Update the selectedDate state here
+                    setSelectedDate(LocalDate.of(year, month, it))
+                    displayMonth = if(startDay > it) {
+                        month + 1
+                    } else {
+                        month
+                    }
+                    // Then call onDaySelected
+                    onDaySelected(it, month, true)
                 }
             }
         }
