@@ -74,8 +74,8 @@ fun MainScreen(navController: NavHostController) {
     val block: suspend CoroutineScope.() -> Unit = {
         updatedNavController.value.addOnDestinationChangedListener { _, destination, _ ->
             title = when (destination.route) {
-                "firstPage" -> "Calendar"
-                "secondPage" -> "Main Page"
+                "firstPage" -> "Images"
+                "secondPage" -> "Schedule"
                 "thirdPage" -> "Diary"
                 "addSchedulePage", "detailPage/{scheduleSeq}" -> "" // 이제 detailPage에서도 타이틀을 비웁니다.
                 else -> "Schedule"

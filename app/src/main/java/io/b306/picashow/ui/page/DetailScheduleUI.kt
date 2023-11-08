@@ -45,6 +45,7 @@ import io.b306.picashow.api.image.CreateImageRequest
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.ScheduleRepository
+import io.b306.picashow.repository.ThemeRepository
 import io.b306.picashow.scheduleWallpaperChange
 import io.b306.picashow.ui.components.CustomAlertDialog
 import io.b306.picashow.ui.components.CustomTimePicker
@@ -54,6 +55,8 @@ import io.b306.picashow.ui.theme.TextFieldCursor
 import io.b306.picashow.util.await
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import io.b306.picashow.viewmodel.ThemeViewModel
+import io.b306.picashow.viewmodel.ThemeViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -76,6 +79,11 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
         factory = scheduleViewModelFactory
     )
 
+    val themeDao = AppDatabase.getDatabase(context).themeDao()
+    val themeRepository = ThemeRepository(themeDao)
+    val themeViewModelFactory = ThemeViewModelFactory(themeRepository)
+    val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
+
     val selectedStartDate = remember { mutableStateOf(LocalDateTime.now()) }
     val selectedStartHour = remember { mutableIntStateOf(LocalDateTime.now().hour) }
     val selectedStartMinute = remember { mutableIntStateOf(LocalDateTime.now().minute) }
@@ -85,6 +93,8 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
     val scheduleName = remember { mutableStateOf("") }
     val content = remember { mutableStateOf("") }
     val imageURL = remember { mutableStateOf("") }
+    val randomKeyword = remember { mutableStateOf<String?>(null) }
+    var randomKeywordState = remember { mutableStateOf(false) }
 
     // 시간 선택기 상태를 관리할 MutableState를 정의
     var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
@@ -92,8 +102,20 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
     // 이전에 데이터를 로드했는지 여부를 추적하는 변수
     var isDataLoaded by remember { mutableStateOf(false) }
 
+    val themeListState = themeViewModel.allKeywords.observeAsState(initial = emptyList())
+    // remember를 사용하여 최초의 랜덤 키워드 선택을 기억합니다.
+    LaunchedEffect(themeListState.value) {
+        if (themeListState.value.isNotEmpty()) {
+            // themeListState가 변경될 때만 랜덤 키워드를 갱신합니다.
+            randomKeyword.value = themeListState.value.random()
+        }
+    }
+
+
     LaunchedEffect(scheduleSeq) {
         if (!isDataLoaded) {
+            // 랜덤한 keyWord를 선택
+
             scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
                 // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
                 // 예를 들면:
@@ -123,13 +145,13 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 // 데이터가 로드되었음을 표시
                 isDataLoaded = true
             }
+            themeViewModel
         }
     }
 
     // AlertDialog 상태
     var showDialogTitle by remember { mutableStateOf(false) }
     var showDialogDate by remember { mutableStateOf(false) }
-
 
     Box(
         modifier = Modifier
@@ -312,7 +334,17 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
 
             if(imageURL.value == "") {
-                Text(color = Color.White, text = "No images have been created yet.", fontSize = 15.sp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(), // 최대 너비를 채움
+                    horizontalArrangement = Arrangement.Center // 가로 방향으로 중앙 정렬
+                ) {
+                    Text(
+                        text = "No images have been created yet.",
+                        color = Color.White,
+                        fontSize = 15.sp
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 Image(
                     painter = painterResource(id = R.drawable.null_image),
@@ -385,7 +417,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                         // 일정 추가
                         withContext(Dispatchers.IO) {
                             try {
-                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "fantasy"))
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, randomKeyword.value!!))
                                 if (response.isSuccessful) {
                                     // 성공적으로 URL을 받아옵니다.
                                     val imageUrl = response.body().toString()
