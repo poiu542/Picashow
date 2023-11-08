@@ -114,7 +114,6 @@ fun firstPage() {
         Dialog(imageUrls);
         DownLoadDialog(imageUrls);
     }
-
 }
 
 suspend fun randomImage(imageListState: MutableState<List<String>>, page: Int) {
