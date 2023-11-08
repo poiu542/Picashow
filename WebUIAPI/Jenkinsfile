@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+    environment {
+        DOKER_IMAGE_NAME = 'freepjt:0.4'
+    }
+    stages {
+        stage('Build Dockerimage') {
+            steps {
+                // FastAPI 애플리케이션을 도커 이미지로 빌드
+                script {
+                    sh docker build -t $DOCKER_IMAGE_NAME -f Dockerfile.Dockerfile .
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    sh docker container run -d -p 8000:8000 $DOCKER_IMAGE_NAME
+                }
+            }
+        }
+    }
+    post {
+        success {
+            // 빌드 성공 시 실행되는 코드 (예: 알림 전송, 기타 작업 등)
+            echo 'Deployment successful!'
+        }
+
+        failure {
+            // 빌드 실패 시 실행되는 코드 (예: 알림 전송, 로그 수집 등)
+            echo 'Deployment failed!'
+        }
+    }
+}
