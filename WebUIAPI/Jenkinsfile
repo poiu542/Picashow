@@ -3,10 +3,12 @@ pipeline {
 
     stages {
         stage('Build Dockerimage') {
-            dir('WebUIAPI') {
-                // FastAPI 애플리케이션을 도커 이미지로 빌드
-                script {
-                    sh 'docker build -t freepjt:0.4 -f Dockerfile.Dockerfile .'
+            steps{
+                dir('WebUIAPI') {
+                    // FastAPI 애플리케이션을 도커 이미지로 빌드
+                    script {
+                        sh 'docker build -t freepjt:0.4 -f Dockerfile.Dockerfile .'
+                    }
                 }
             }
         }
