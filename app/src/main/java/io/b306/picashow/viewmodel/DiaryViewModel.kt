@@ -20,12 +20,10 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
     val diaryList: LiveData<List<Diary>> get() = _diaryList
 
     // Diary를 저장하는 함수
-    fun saveDiary(diary: Diary) {
-        viewModelScope.launch {
-            // Diary를 저장하고 저장된 Diary 객체를 _myInfo LiveData에 할당
-            val savedDiary = repository.insert(diary)
-            _myInfo.value = diary
-        }
+    suspend fun saveDiary(diary: Diary) {
+        // Diary를 저장하고 저장된 Diary 객체를 _myInfo LiveData에 할당
+        val savedDiary = repository.insert(diary)
+        _myInfo.value = diary
     }
 
     // Diary를 업데이트하는 함수

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,17 +95,15 @@ fun DiaryPage() {
     // 선택한 날짜를 Date로 변환
     val selectedDate = dateFormatter.parse(selectedDateStr)
         ImageCompo(diaryViewModel = diaryViewModel) // 페이지별로 Image를 그립니다.
-    var previousDate by remember { mutableStateOf("") }
 
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
 
-    LaunchedEffect(diaryTitle.value, pagerState.currentPage) {
-        // diaryTitle이 변경되거나 페이지가 스와이프 될 때마다 실행됩니다.
-        val selectedDate = dateFormatter.parse(diaryTitle.value)
-        diaryViewModel.getDiaryByDate(selectedDate.time)
-        previousDate = diaryTitle.value
-        Log.d("무한 호출인가요? ={}", "yes")
-    }
+//    LaunchedEffect(diaryTitle.value, pagerState.currentPage) {
+//        // diaryTitle이 변경되거나 페이지가 스와이프 될 때마다 실행됩니다.
+//        val selectedDate = dateFormatter.parse(diaryTitle.value)
+//        diaryViewModel.getDiaryByDate(selectedDate.time)
+//        Log.d("무한 호출인가요? ={}", "yes")
+//    }
     if(diaryDatePickerFlag.value) {ShowDatePicker(diaryTitle.value); diaryDatePickerFlag.value=false}
 }
 
@@ -118,9 +118,11 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
     var selectedDiary: Diary? = null
     val coroutineScope = rememberCoroutineScope()
     if (!diaryList.isNullOrEmpty()) {
-        // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
-        selectedDiary = diaryList[0] // 여기에서 첫 번째 일기를 가져옴
+        selectedDiary = diaryList[0]
     }
+
+    var userChangedTitle = remember { mutableStateOf(false) }
+
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
 
     HorizontalPager(state = pagerState) { page ->
@@ -131,7 +133,12 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
                 pagerState.scrollToPage(targetPage.value)
                 changeCheck.value = false
             }
-
+        }
+        LaunchedEffect(diaryTitle.value, pagerState.currentPage) {
+            val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val selectedDate = dateFormatter.parse(diaryTitle.value)
+            diaryViewModel.getDiaryByDate(selectedDate.time)
+            Log.d("무한 호출인가요? ={}", "yes")
         }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -144,9 +151,7 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
 
                     var imageUrl = selectedDiary?.url
                     if (imageUrl == null) {
-                        // TODO : 이거 이미지 뭐로 가져올지 정해야 됨
-                        imageUrl =
-                            "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+                        imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
                     }
                     val painter = rememberImagePainter(data = imageUrl)
 
@@ -155,9 +160,7 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
                             .fillMaxWidth()
                             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                     ) {
-                        DateText(diaryTitle.value) {
-
-                        }
+                        DateText(diaryTitle.value) { }
                     }
 
                     Box(
@@ -177,11 +180,9 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
                     }
 
                     if (!diaryList.isNullOrEmpty()) {
-                        // 선택한 날짜에 일기가 있을 때 표시할 내용을 작성합니다.
-                        DiaryText(selectedDiary!!, diaryViewModel)
+                        DiaryText(selectedDiary!!, diaryViewModel, userChangedTitle)
                     } else {
-                        // 선택한 날짜에 일기가 없을 때 새로운 일기를 작성할 수 있도록 UI를 구성합니다.
-                        TextPlaceHolder(diaryViewModel)
+                        TextPlaceHolder(diaryViewModel, userChangedTitle)
                     }
                 }
             }
@@ -190,11 +191,12 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
 }
 
 @Composable
-fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
-    var isEditing by remember { mutableStateOf(false) } // 일기 수정 모드를 나타내는 상태 값
-    var editText by remember(diary) { mutableStateOf(diary.content) } // 일기 수정 내용을 나타내는 상태 값
+fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
+    var isEditing by remember { mutableStateOf(false) }
+    var editText by remember(diary) { mutableStateOf(diary.content) }
+    val coroutineScope = rememberCoroutineScope()
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    // diary.content 값이 변경될 때마다 editText 값을 업데이트
     LaunchedEffect(diary.content) {
         editText = diary.content
     }
@@ -205,10 +207,8 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
             .padding(start = 16.dp, end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 제목 출력
         val titleBoxModifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
 
@@ -234,6 +234,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                     onValueChange = { newText -> editText = newText },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .heightIn(min = 90.dp)
                         .background(Color.Transparent),
                     textStyle = TextStyle(
                         color = Color.White,
@@ -241,17 +242,14 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                         textAlign = TextAlign.Center
                     ),
                     cursorBrush = SolidColor(Color.White),
+                    singleLine = false
                 )
             }
         }
 
-        // 수정 버튼 추가
         if (!isEditing) {
             Button(
-                onClick = {
-                    // 수정 버튼을 클릭했을 때 실행될 동작을 정의합니다.
-                    isEditing = true
-                },
+                onClick = { isEditing = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -264,13 +262,13 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                // 완료 버튼
                 Button(
                     onClick = {
-                        // 완료 버튼을 클릭했을 때 실행될 동작을 정의합니다.
-                        diary.content = editText
-                        diaryViewModel.updateDiary(diary) // 데이터베이스 업데이트
-                        isEditing = false
+                        coroutineScope.launch {
+                            diary.content = editText
+                            diaryViewModel.updateDiary(diary)
+                            isEditing = false
+                        }
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -279,11 +277,10 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
                 ) {
                     Text(text = "완료")
                 }
-                // 취소 버튼
+
                 Button(
                     onClick = {
-                        // 취소 버튼을 클릭했을 때 실행될 동작을 정의합니다.
-                        editText = diary.content ?: "" // 원래의 일기 내용으로 되돌림
+                        editText = diary.content ?: ""
                         isEditing = false
                     },
                     modifier = Modifier
@@ -298,13 +295,12 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
     }
 }
 
-
-
 @Composable
-fun TextPlaceHolder(viewModel: DiaryViewModel) {
+fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
     var text by remember { mutableStateOf("") }
 
-    val imageUrl = "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B"
+    val imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     Column(
         modifier = Modifier
@@ -312,10 +308,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
             .padding(start = 16.dp, end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 제목 입력
         val titleBoxModifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
 
@@ -334,13 +328,14 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
                 cursorBrush = SolidColor(Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(min = 90.dp)
                     .background(Color.Transparent),
-                visualTransformation = VisualTransformation.None
+                visualTransformation = VisualTransformation.None,
+                singleLine = false
             )
-
             if (text.isEmpty()) {
                 Text(
-                    text = "text",
+                    text = "diary content",
                     color = Color.Gray,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -350,30 +345,30 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
         }
     }
 
-// 일기를 저장하는 버튼
+    val coroutineScope = rememberCoroutineScope()
+
     Button(
         onClick = {
-            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val diary = Diary(
-                diarySeq = null,
-                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
-                title = text,
-                content = text,
-                url = imageUrl
-            )
-            viewModel.saveDiary(diary)
-            // 일기 저장 후, diaryTitle 상태를 변경하여 DiaryPage를 갱신합니다.
-            diaryTitle.value = currentDate
+            coroutineScope.launch {
+                val diary = Diary(
+                    diarySeq = null,
+                    date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
+                    title = null,
+                    content = text,
+                    url = imageUrl
+                )
+                viewModel.saveDiary(diary)
+            }
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-        ,
+            .padding(16.dp),
         colors = ButtonDefaults.buttonColors(teal40)
     ) {
         Text(text = "일기 저장")
     }
 }
+
 
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
@@ -382,7 +377,6 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
             .fillMaxWidth()
             .height(40.dp)
             .background(Color.Transparent)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
             .clickable( onClick = onDateTextClicked), // Box를 클릭 가능하게 만듭니다.
         contentAlignment = Alignment.Center
