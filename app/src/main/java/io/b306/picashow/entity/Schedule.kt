@@ -10,9 +10,9 @@ import java.util.Date
 @TypeConverters(Converters::class)
 data class Schedule(
     @PrimaryKey(autoGenerate = true) val scheduleSeq : Long?,
-    val startDate : Date?,
-    val endDate: Date?,
-    val scheduleName : String?,
-    val wallpaperUrl : String?,
-    val content : String?,
+    var startDate : Date?,
+    var endDate: Date?,
+    var scheduleName : String?,
+    var wallpaperUrl : String?,
+    var content : String?,
 )

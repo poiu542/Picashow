@@ -3,6 +3,7 @@ package io.b306.picashow.ui.page
 import android.annotation.SuppressLint
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
@@ -64,20 +65,24 @@ import androidx.compose.ui.window.Dialog as Dialog
 
 var tutorialImageUrls = mutableListOf(
     arrayOf(
-    "https://mblogthumb-phinf.pstatic.net/MjAxOTAzMTlfMjYy/MDAxNTUyOTI4OTcyMDgw.USYJbzqsCIe02lwsQ1qNSodtNFKKeaIumsOMNio-ffcg.g27f78YWMeUuZCjOh8PeZrMODh6o1S8AtOEXDENwb9og.JPEG.hongseull/%EB%A7%88%EB%85%80%EB%B0%B0%EB%8B%AC%EB%B6%80_%ED%82%A4%ED%82%A4.jpg?type=w800",
-    "https://i.pinimg.com/564x/5e/7c/e1/5e7ce110221f9dbc96579c978da62aa8.jpg",
-    "https://i.pinimg.com/originals/22/de/92/22de92092890e1540ca5015818f5c3cd.jpg",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRu3WFtOVor0CH59xCanFxZ21wDCyUueV7jPg&usqp=CAU",
-    "https://images.unsplash.com/photo-1659951345629-091600ae202c?auto=format&fit=crop&q=80&w=435&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://mblogthumb-phinf.pstatic.net/MjAxODAxMjFfMTMy/MDAxNTE2NTQyOTA0Mzk3.sodrPAj7QOabX0S6tKObbbAGo9xXkX3QiauDEU0ShTgg.olNXD3GdYDF3JH9C36dnI1NUuuJdcfv61uBTCVR2c1Eg.JPEG.knicjin/20180121-010.jpg?type=w800",
-    ),
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-2639669529690009063.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-5238680096499836867.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-4610657644614568213.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-4608192120304862152.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/3560503986219592235.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/4517837980666991645.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8406365908455495805.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8587172660287848677.png"
+     ),
     arrayOf(
-    "zebri",
-    "europe",
-    "future",
-    "science",
-    "greece",
-    "sky"
+        "realistic",
+        "ghibli",
+        "animation",
+        "fantasy",
+        "van gosh",
+        "picasso",
+        "europe",
+        "animation"
     )
 )
 
@@ -123,7 +128,7 @@ fun mainTutorial() {
                 .align(Alignment.Center)
         ) {
             Text(
-                text = "       Choose the photos you like",
+                text = "Please choose the images you like.",
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
                 color = Color.White,
@@ -141,20 +146,25 @@ fun mainTutorial() {
                 .align(Alignment.BottomCenter)
                 .background(color = Color.Black)
                 .clickable {
-                    flag.value = true
+                    if(selectedImageIndices.isEmpty())  Toast.makeText(context, "Please select one or more preferred images.", Toast.LENGTH_SHORT).show()
+                    else {
+                        flag.value = true
 
-                    var themeList = mutableStateListOf<Theme>()
-                    for (i in selectedImageIndices) {
-                        val selectTheme = Theme(null, tutorialImageUrls[1][i])
-                        themeList.add(selectTheme)
+                        var themeList = mutableStateListOf<Theme>()
+                        for (i in selectedImageIndices) {
+                            val selectTheme = Theme(null, tutorialImageUrls[1][i])
+                            themeList.add(selectTheme)
+                        }
+                        themeViewModel.insertAllThemes(themeList)
+                        val deviceUniqueId = Settings.Secure.getString(
+                            context.contentResolver,
+                            Settings.Secure.ANDROID_ID
+                        )
+
+                        var member = Member(1, true, deviceUniqueId)
+                        memberViewModel.saveMember(member)
+                        Log.d("member = {}", _myInfo.value?.isTutorial.toString())
                     }
-                    themeViewModel.insertAllThemes(themeList)
-                    val deviceUniqueId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-
-                    var member = Member(1, true, deviceUniqueId)
-                    memberViewModel.saveMember(member)
-                    Log.d("member = {}", _myInfo.value?.isTutorial.toString())
-
                 }
         ) {
             var backgroundColor = if (selectedImageIndices.isEmpty()) Color.Gray else teal40
@@ -192,10 +202,10 @@ fun textTutorial() {
         delay(1500L)
 
         isVisible2 = true
-        delay(2000L)
+        delay(3000L)
 
         isVisible2 = false
-        delay(1000L)
+        delay(1500L)
         textTutorialDone.value =true
     }
 
@@ -210,9 +220,10 @@ fun textTutorial() {
                 exit = fadeOut(animationSpec = tween(1500))
             ) {
                 Text(
-                    text = "welcome to free background!",
+                    text = "welcome to free AI background!",
                     color = Color.White,
-                    fontSize = 40.sp
+                    fontSize = 40.sp,
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -222,9 +233,10 @@ fun textTutorial() {
                 exit = fadeOut(animationSpec = tween(1500))
             ) {
                 Text(
-                    text = "골라보랑께!",
+                    text = "For optimal AI background creation, \n \n show your preferences!",
                     color = Color.White,
-                    fontSize = 40.sp
+                    fontSize = 40.sp,
+                    textAlign = TextAlign.Center
                 )
             }
         }

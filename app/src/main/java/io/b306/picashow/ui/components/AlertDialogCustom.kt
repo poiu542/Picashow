@@ -36,7 +36,7 @@ fun CustomAlertDialog(
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.padding(bottom = 12.dp, end = 12.dp)
             ) {
-                Text("확인", color = Color.Black, fontSize = 13.sp)
+                Text("OK", color = Color.Black, fontSize = 13.sp)
             }
         },
         shape = RoundedCornerShape(16.dp),

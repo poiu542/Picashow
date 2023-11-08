@@ -18,9 +18,4 @@ interface MemberDao : BaseDao<Member>{
 
     @Query("SELECT * FROM member WHERE memberSeq = :memberSeq")
     fun getMember(memberSeq: Long): Member
-//    @Query("SELECT * FROM member WHERE date = :date")
-//    fun selectByDate(date : String ) : Member
-
-//    @Query("DELETE FROM writeData WHERE id = :id")
-//    fun deleteById(id : Long)
 }

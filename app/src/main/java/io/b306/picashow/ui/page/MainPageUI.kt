@@ -1,5 +1,6 @@
 package io.b306.picashow.ui.page
 
+import android.app.DatePickerDialog
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -52,6 +53,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.repository.ScheduleRepository
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
@@ -60,10 +62,10 @@ import java.util.Locale
 import kotlin.time.Duration.Companion.minutes
 
 //class MainPageUI {
-//}
+//}`
 
 @Composable
-fun MainPage() {
+fun MainPage(navController : NavController) {
 
     val context = LocalContext.current
 
@@ -92,33 +94,50 @@ fun MainPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(
+                start = 16.dp,
+                end = 16.dp
+            )
     ) {
-        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal ->
+        Calendar(currentYear, currentMonth, currentDay, selectedDay) { newSelectedDay, selectedMonthLocal, check ->
             selectedDay = newSelectedDay
-            selectedMonth = if(selectedDay < currentDay) {
+            selectedMonth = if(selectedDay < currentDay && check) {
                 selectedMonthLocal + 1
             } else {
                 selectedMonthLocal
             }
             Log.e("SelectedDay", "Selected day is: $selectedMonth/$selectedDay")
 
-            // TODO selectedMonth, Day를 사용해서 그 날짜에 해당하는 Task를 Room에서 불러오면 됨(코루틴 비둘기 써서)
-            // 선택된 날짜의 데이터를 가져옵니다.
+            // 선택된 날짜의 데이터를 Room에서 가져옴
             scheduleViewModel.fetchSchedulesForDate(currentYear, selectedMonth, selectedDay)
         }
         Spacer(modifier = Modifier.height(16.dp))
 
         val schedules by scheduleViewModel.schedules.observeAsState(emptyList())
 
-        Tasks(schedules)
+        Tasks(schedules, onTaskClick = { schedule ->
+            // 상세 페이지로 이동
+            navController.navigate("detailPage/${schedule.scheduleSeq}")
+        })
     }
 }
 
 @Composable
-fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int, Int) -> Unit) {
+fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelected: (Int, Int, Boolean) -> Unit) {
     val daysInMonth = daysInMonth(year, month)
     val daysToShow = mutableListOf<Int?>()
+    val context = LocalContext.current
+    // 날짜 선택 상태를 저장하기 위한 mutable state
+    var (selectedDate, setSelectedDate) = remember { mutableStateOf(LocalDate.of(year, month, selectedDay)) }
+    var displayMonth by remember { mutableStateOf(month) }
+
+    val dayNames = getWeekDayNamesBasedOnStartDay(year, month, startDay)
+    var showDatePicker by remember { mutableStateOf(false) }
+//    val selectedMonth = if(selectedDay < startDay) {
+//        month + 1
+//    } else {
+//        month
+//    }
 
     for (i in 0 until 30) {
         val currentDay = startDay + i
@@ -128,12 +147,34 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
             daysToShow.add(currentDay - daysInMonth)  // 다음 달의 날짜로 업데이트
         }
     }
-    val dayNames = getWeekDayNamesBasedOnStartDay(year, month, startDay)
 
-    Text(text = monthToName(month), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-    Spacer(modifier = Modifier.height(8.dp))
-    ShowTimePicker()
-    ShowDatePicker()
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            context,
+            { _, selectedYear, selectedMonthOfYear, dayOfMonth ->
+                val actualMonth = selectedMonthOfYear + 1
+                val newSelectedDate = LocalDate.of(selectedYear, actualMonth, dayOfMonth)
+                setSelectedDate(newSelectedDate) // 선택된 날짜 상태 업데이트
+                displayMonth = actualMonth
+                onDaySelected(dayOfMonth, actualMonth, false)
+                showDatePicker = false // DatePickerDialog 닫기
+            },
+            selectedDate.year,
+            selectedDate.monthValue - 1, // DatePicker에서 월이 0부터 시작하므로 실제 월에서 1을 뺍니다.
+            selectedDate.dayOfMonth
+        ).show()
+    }
+
+    Text(
+        text = "${selectedDate.year} / $displayMonth / ${selectedDate.dayOfMonth}",
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        color = Color.White,
+        modifier = Modifier.clickable { showDatePicker = true }  // Text를 클릭하면 DatePickerDialog를 표시
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+//    ShowDatePicker()
 
     val lazyListState = rememberLazyListState()
 
@@ -144,9 +185,17 @@ fun Calendar(year: Int, month: Int, startDay: Int, selectedDay: Int, onDaySelect
         verticalAlignment = Alignment.CenterVertically
     ) {
         itemsIndexed(daysToShow) { index, day ->
-            DayWithBackground(day, dayNames[index], day == selectedDay) {
+            DayWithBackground(day, dayNames[index], day == selectedDate.dayOfMonth) { // Change comparison to selectedDate
                 day?.let {
-                    onDaySelected(it, month)
+                    // Update the selectedDate state here
+                    setSelectedDate(LocalDate.of(year, month, it))
+                    displayMonth = if(startDay > it) {
+                        month + 1
+                    } else {
+                        month
+                    }
+                    // Then call onDaySelected
+                    onDaySelected(it, month, true)
                 }
             }
         }
@@ -225,10 +274,10 @@ fun monthToName(month: Int): String {
 }
 
 @Composable
-fun Tasks(schedules: List<Schedule>) {
+fun Tasks(schedules: List<Schedule>, onTaskClick: (Schedule) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp)
+        contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         item {
             Text(
@@ -242,14 +291,14 @@ fun Tasks(schedules: List<Schedule>) {
 
         items(schedules.size) { index ->
             val schedule = schedules[index]
-            TaskItem(schedule)
+            TaskItem(schedule = schedule, onClick = { onTaskClick(schedule)})
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun TaskItem(schedule: Schedule) {
+fun TaskItem(schedule: Schedule,  onClick: () -> Unit) {
 
     // 시간 포맷을 정의
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -257,7 +306,8 @@ fun TaskItem(schedule: Schedule) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(vertical = 8.dp)
+            .clickable(onClick = onClick) // 클릭 이벤트 처리
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFF00A7A7), Color(0xFF2C2C2C)),

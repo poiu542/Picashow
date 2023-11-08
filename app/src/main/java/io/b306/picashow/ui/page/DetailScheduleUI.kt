@@ -1,8 +1,5 @@
 package io.b306.picashow.ui.page
 
-import android.annotation.SuppressLint
-import android.app.DatePickerDialog
-import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
@@ -22,7 +19,6 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,17 +27,18 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import io.b306.picashow.R
 import io.b306.picashow.UpdateImageService
 import io.b306.picashow.api.ApiObject
 import io.b306.picashow.api.image.CreateImageRequest
@@ -65,17 +62,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
-enum class TimePickerType {
-    START, END
-}
 
-@SuppressLint("SuspiciousIndentation")
 @Composable
-fun AddSchedulePage(navController : NavController) {
+fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
     // 의존성 주입
     val context = LocalContext.current
@@ -100,17 +92,17 @@ fun AddSchedulePage(navController : NavController) {
     val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
     val scheduleName = remember { mutableStateOf("") }
     val content = remember { mutableStateOf("") }
+    val imageURL = remember { mutableStateOf("") }
     val randomKeyword = remember { mutableStateOf<String?>(null) }
+    var randomKeywordState = remember { mutableStateOf(false) }
 
     // 시간 선택기 상태를 관리할 MutableState를 정의
     var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
 
-    // AlertDialog 상태
-    var showDialogTitle by remember { mutableStateOf(false) }
-    var showDialogDate by remember { mutableStateOf(false) }
+    // 이전에 데이터를 로드했는지 여부를 추적하는 변수
+    var isDataLoaded by remember { mutableStateOf(false) }
 
     val themeListState = themeViewModel.allKeywords.observeAsState(initial = emptyList())
-
     // remember를 사용하여 최초의 랜덤 키워드 선택을 기억합니다.
     LaunchedEffect(themeListState.value) {
         if (themeListState.value.isNotEmpty()) {
@@ -119,8 +111,47 @@ fun AddSchedulePage(navController : NavController) {
         }
     }
 
-    Log.d("이미지 띠미 출력", randomKeyword.value ?: "띠미없음..")
-    Log.d("이미지 띠미 출력2", themeListState.value.toString())
+
+    LaunchedEffect(scheduleSeq) {
+        if (!isDataLoaded) {
+            // 랜덤한 keyWord를 선택
+
+            scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
+                // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
+                // 예를 들면:
+                scheduleDetails?.let {
+                    scheduleName.value = it.scheduleName ?: ""
+                    content.value = it.content ?: ""
+                    imageURL.value = it.wallpaperUrl ?: ""
+
+                    // 날짜 및 시간 설정
+                    it.startDate?.let { startDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val startDateTime = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
+                        selectedStartDate.value = startDateTime
+                        selectedStartHour.value = startDateTime.hour
+                        selectedStartMinute.value = startDateTime.minute
+                    }
+
+                    it.endDate?.let { endDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val endDateTime = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
+                        selectedEndDate.value = endDateTime
+                        selectedEndHour.value = endDateTime.hour
+                        selectedEndMinute.value = endDateTime.minute
+                    }
+                }
+
+                // 데이터가 로드되었음을 표시
+                isDataLoaded = true
+            }
+            themeViewModel
+        }
+    }
+
+    // AlertDialog 상태
+    var showDialogTitle by remember { mutableStateOf(false) }
+    var showDialogDate by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -214,7 +245,7 @@ fun AddSchedulePage(navController : NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -301,6 +332,37 @@ fun AddSchedulePage(navController : NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
+
+            if(imageURL.value == "") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(), // 최대 너비를 채움
+                    horizontalArrangement = Arrangement.Center // 가로 방향으로 중앙 정렬
+                ) {
+                    Text(
+                        text = "No images have been created yet.",
+                        color = Color.White,
+                        fontSize = 15.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.null_image),
+                    contentDescription = "Displayed Image", // 접근성 설명
+                    modifier = Modifier
+                        .fillMaxWidth() // 이미지를 최대 너비로 채우도록 설정
+                        .height(300.dp) // 원하는 높이로 설정
+                )
+            } else {
+                Image(
+                    painter = rememberImagePainter(imageURL.value), // 이미지 URL
+                    contentDescription = "Displayed Image", // 접근성 설명
+                    modifier = Modifier
+                        .fillMaxWidth() // 이미지를 최대 너비로 채우도록 설정
+                        .height(300.dp) // 원하는 높이로 설정
+                )
+            }
+
         }
         Row(
             modifier = Modifier
@@ -342,22 +404,27 @@ fun AddSchedulePage(navController : NavController) {
                         wallpaperUrl = null,
                         content = content.value,
                     )
-
-
+                    // 일정 Room 수정하기 - imageURL은 없음
+                    scheduleViewModel.updateSchedule(scheduleSeq, schedule)
+                    /* TODO
+                        1. FastAPI 요청 보내서 이미지 URL 받기
+                        2. 받은 URL schedule 테이블에 update로 넣기
+                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기
+                        * 주의사항
+                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
+                    */
                     CoroutineScope(Dispatchers.Main).launch {
                         // 일정 추가
                         withContext(Dispatchers.IO) {
-                        val scheduleSeq = scheduleViewModel.saveSchedule(schedule).await()
                             try {
                                 val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, randomKeyword.value!!))
                                 if (response.isSuccessful) {
                                     // 성공적으로 URL을 받아옵니다.
                                     val imageUrl = response.body().toString()
                                     // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
-                                    Log.e("Seq", scheduleSeq.toString())
-//                                    scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), imageUrl)
+                                    Log.e("Seq", scheduleSeq)
                                     val intent = Intent(context, UpdateImageService::class.java).apply {
-                                        putExtra("scheduleSeq", scheduleSeq.toString())
+                                        putExtra("scheduleSeq", scheduleSeq)
                                         putExtra("newImgUrl", imageUrl)
                                     }
                                     context.startService(intent)
@@ -370,8 +437,10 @@ fun AddSchedulePage(navController : NavController) {
                             }
                         }
                     }
-                    // 사용자에게 피드백을 제공하고 화면을 닫습니다.
-                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
+
+                    Toast.makeText(context, "The schedule has been modified", Toast.LENGTH_LONG).show()
+
+                    // 일정 수정 후 뒤로가기
                     navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -386,7 +455,7 @@ fun AddSchedulePage(navController : NavController) {
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "Schedule name cannot be null",
+                    description = "Schedule name cannot be null!",
                     onConfirm = {
                         showDialogTitle = false
                     }
@@ -403,36 +472,4 @@ fun AddSchedulePage(navController : NavController) {
         }
 
     }
-}
-
-fun getDayOfWeek(day: DayOfWeek): String {
-    return when (day) {
-        DayOfWeek.MONDAY -> "Mon"
-        DayOfWeek.TUESDAY -> "Tue"
-        DayOfWeek.WEDNESDAY -> "Wed"
-        DayOfWeek.THURSDAY -> "Thu"
-        DayOfWeek.FRIDAY -> "Fri"
-        DayOfWeek.SATURDAY -> "Sat"
-        DayOfWeek.SUNDAY -> "Sun"
-    }
-}
-
-fun showDatePicker(context: Context, dateSetListener: (Int, Int, Int) -> Unit) {
-    val currentDateTime = LocalDateTime.now()
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            dateSetListener(year, month + 1, dayOfMonth)
-        },
-        currentDateTime.year,
-        currentDateTime.monthValue - 1,
-        currentDateTime.dayOfMonth
-    )
-    datePickerDialog.show()
-}
-
-// 선택한 날짜, 시간을 Date 형식으로 바꾸기
-fun combineDateTime(date: LocalDateTime, hour: Int, minute: Int): Date {
-    val combinedDateTime = date.withHour(hour).withMinute(minute)
-    return Date.from(combinedDateTime.atZone(ZoneId.systemDefault()).toInstant())
 }

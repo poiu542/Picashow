@@ -48,8 +48,7 @@ fun ShowDatePicker() {
 
             DatePickerDialog(context, { _, mYear, mMonth, mDay ->
                 selectedDate = "${mDay}/${mMonth + 1}/$mYear"
-                // selectedDate 변수에 선택된 날짜가 저장됩니다.
-                // 이 변수를 원하는 곳에서 사용하세요.
+                // selectedDate 변수에 선택된 날짜가 저장
 
             }, year, month, day).show()
         }
@@ -90,7 +89,8 @@ fun ShowTimePicker() {
 @Composable
 fun CustomTimePicker(
     selectedHour: MutableState<Int>,
-    selectedMinute: MutableState<Int>
+    selectedMinute: MutableState<Int>,
+    onTimeSelected: () -> Unit // 시간을 선택하면 호출될 콜백
 ) {
     Column(
         modifier = Modifier
@@ -117,6 +117,7 @@ fun CustomTimePicker(
                             .fillMaxWidth()
                             .clickable {
                                 selectedHour.value = hour
+                                onTimeSelected() // 사용자가 시간을 선택했습니다
                             }
                             .padding(8.dp)
                     )
@@ -149,6 +150,7 @@ fun CustomTimePicker(
                             .fillMaxWidth()
                             .clickable {
                                 selectedMinute.value = minute
+                                onTimeSelected() // 사용자가 시간을 선택했습니다
                             }
                             .padding(8.dp)
                     )

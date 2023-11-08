@@ -17,4 +17,8 @@ interface ThemeDao: BaseDao<Theme> {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(themes: List<Theme>)
+
+    // 모든 테마의 keyWord 데이터를 불러오는 쿼리
+    @Query("SELECT keyWord FROM Theme")
+    fun getAllKeywords(): Flow<List<String>>
 }
