@@ -369,7 +369,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
     }
 }
 
-
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
     Box(

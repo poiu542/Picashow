@@ -15,5 +15,7 @@ interface DiaryDao : BaseDao<Diary> {
     @Query("SELECT * FROM diary WHERE date = :selectedDate")
     fun getDiaryByDate(selectedDate: Long): Flow<List<Diary>>
 
-
+    // DiaryDao 인터페이스에 추가
+    @Query("SELECT * FROM diary WHERE diarySeq = :diarySeq")
+    suspend fun getDiary(diarySeq: Int): Diary?
 }

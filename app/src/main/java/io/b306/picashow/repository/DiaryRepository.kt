@@ -31,5 +31,9 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
         return diaryDao.getDiaryByDate(selectedDate)
     }
 
+    // DiaryRepository 클래스에 추가
+    suspend fun getDiary(diarySeq: Int): Diary? {
+        return diaryDao.getDiary(diarySeq)
+    }
 
 }

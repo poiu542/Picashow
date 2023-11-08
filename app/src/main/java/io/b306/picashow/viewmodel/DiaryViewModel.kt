@@ -57,6 +57,13 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
         }
     }
 
+    // Diary ID를 기반으로 Diary를 가져오는 함수
+    fun getDiary(diarySeq: Int) {
+        viewModelScope.launch {
+            val diary = repository.getDiary(diarySeq)
+            _myInfo.value = diary
+        }
+    }
 
 }
 
