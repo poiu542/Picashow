@@ -1,5 +1,6 @@
 package io.b306.picashow.repository
 
+import android.util.Log
 import androidx.annotation.WorkerThread
 import io.b306.picashow.dao.MemberDao
 import io.b306.picashow.dao.ScheduleDao
@@ -14,10 +15,9 @@ import java.time.ZoneOffset
 class ScheduleRepository(private val scheduleDao: ScheduleDao) {
     val allSchedule: Flow<List<Schedule>> = scheduleDao.getAll()
 
-    @Suppress("RedundantSuspendModifier")
     @WorkerThread
-    suspend fun insert(schedule: Schedule) {
-        scheduleDao.insert(schedule)
+    suspend fun insert(schedule: Schedule) : Long {
+        return scheduleDao.insert(schedule)
     }
 
     // 특정 일자 일정 가져오기
@@ -38,5 +38,10 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
 
     suspend fun updateSchedule(schedule: Schedule) {
         scheduleDao.update(schedule)
+    }
+
+    @WorkerThread
+    suspend fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
+        scheduleDao.updateWallpaperUrl(scheduleSeq, newImgUrl)
     }
 }

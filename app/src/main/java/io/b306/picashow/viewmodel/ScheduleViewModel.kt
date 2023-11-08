@@ -21,14 +21,14 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
 
     val schedules: LiveData<List<Schedule>> = _schedules
 
-    fun saveSchedule(schedule: Schedule) {
+    fun saveSchedule(schedule: Schedule): LiveData<Long> {
+        val result = MutableLiveData<Long>()
         viewModelScope.launch {
-            // Diary를 저장하고 저장된 Diary 객체를 _myInfo LiveData에 할당
-            repository.insert(schedule)
-
-            // 현재 LiveData를 방금 저장한 일정으로 갱신
-            _schedules.value = listOf(schedule)
+            // Room에서 새로 삽입된 행의 ID를 반환받습니다.
+            val scheduleSeq = repository.insert(schedule)
+            result.postValue(scheduleSeq)
         }
+        return result
     }
 
     fun fetchSchedulesForDate(year: Int, month: Int, day: Int) {
@@ -40,14 +40,6 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
         }
     }
 
-//    fun getScheduleById(id: String): LiveData<Schedule?> {
-//        val result = MutableLiveData<Schedule?>()
-//        viewModelScope.launch(Dispatchers.IO) {
-//            // 백그라운드 스레드에서 데이터베이스 작업을 실행
-//            result.postValue(repository.getScheduleById(id))
-//        }
-//        return result
-//    }
     fun getScheduleById(id: String, onScheduleLoaded: (Schedule?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             // 백그라운드 스레드에서 데이터베이스 작업을 실행
@@ -59,24 +51,6 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
         }
     }
 
-
-//    fun updateSchedule(scheduleSeq: String, updatedScheduleData: Schedule) {
-//        viewModelScope.launch {
-//            val existingSchedule = repository.getScheduleById(scheduleSeq)
-//            existingSchedule?.let { schedule ->
-//                // 업데이트할 속성 설정
-//                schedule.scheduleName = updatedScheduleData.scheduleName
-//                schedule.content = updatedScheduleData.content
-//                schedule.endDate = updatedScheduleData.endDate
-//                schedule.startDate = updatedScheduleData.startDate
-//                // 이거 나중에 이미지 다시 뽑기 할 거면 아래 주석 풀면 됨
-//                // schedule.wallpaperUrl = updatedScheduleData.wallpaperUrl
-//
-//                // 업데이트 메서드 호출
-//                repository.updateSchedule(schedule)
-//            }
-//        }
-//    }
     fun updateSchedule(scheduleSeq: String, updatedScheduleData: Schedule) {
         viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
             val existingSchedule = repository.getScheduleById(scheduleSeq)
@@ -93,6 +67,13 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
                 repository.updateSchedule(schedule)
             }
             // 필요하다면 결과를 메인 스레드로 보내는 코드를 추가
+        }
+    }
+
+    fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
+        viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
+            Log.d("여옵니다1", "뷰모달")
+            repository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
         }
     }
 

@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object ApiObject {
     // 10.25. 미정된 상태
@@ -16,6 +17,13 @@ object ApiObject {
         }
     }
 
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃을 30초로 설정
+        .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임아웃을 30초로 설정
+        .writeTimeout(30, TimeUnit.SECONDS) // 쓰기 타임아웃을 30초로 설정
+        .addInterceptor(loggingInterceptor) // 로깅 인터셉터 추가
+        .build()
+
     // API 요청시 log 띄우기
     private val httpClient by lazy {
         OkHttpClient.Builder()
@@ -26,9 +34,9 @@ object ApiObject {
     // API 요청
     private val getRetrofit by lazy{
         Retrofit.Builder()
+            .client(client)
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(httpClient)
             .build()
     }
 

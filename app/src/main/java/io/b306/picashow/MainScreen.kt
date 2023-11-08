@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -76,17 +77,12 @@ fun MainScreen(navController: NavHostController) {
                 "firstPage" -> "Calendar"
                 "secondPage" -> "Main Page"
                 "thirdPage" -> "Diary"
+                "addSchedulePage", "detailPage/{scheduleSeq}" -> "" // 이제 detailPage에서도 타이틀을 비웁니다.
                 else -> "Schedule"
             }
-            showAppBarAndNavBar = destination.route != "addSchedulePage"
+            // addSchedulePage와 detailPage에서는 AppBar와 NavBar를 표시하지 않습니다.
+            showAppBarAndNavBar = destination.route != "addSchedulePage" && destination.route?.contains("detailPage") != true
 
-            // Observe changes in myInfo LiveData
-//            val member = memberViewModel.myInfo.value
-            // Access isTutorial property from the retrieved Member object
-//            val isTutorial = member?.isTutorial ?: false
-            // Use the value as needed
-//            Log.d("sex",isTutorial.toString())
-//            println("Is Tutorial: $isTutorial")
         }
     }
     LaunchedEffect(updatedNavController.value, block)
@@ -174,6 +170,7 @@ fun MainScreen(navController: NavHostController) {
                             Image(
                                 painter = painterResource(id = R.drawable.calender),
                                 contentDescription = null,
+                                modifier = Modifier.size(30.dp),
                                 colorFilter = if (currentRoute == "firstPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
                                     imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )
@@ -186,6 +183,7 @@ fun MainScreen(navController: NavHostController) {
                             Image(
                                 painter = painterResource(id = R.drawable.today),
                                 contentDescription = null,
+                                modifier = Modifier.size(30.dp),
                                 colorFilter = if (currentRoute == "secondPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
                                     imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )
@@ -198,6 +196,7 @@ fun MainScreen(navController: NavHostController) {
                             Image(
                                 painter = painterResource(id = R.drawable.paintdiary),
                                 contentDescription = null,
+                                modifier = Modifier.size(30.dp),
                                 colorFilter = if (currentRoute == "thirdPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
                                     imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )

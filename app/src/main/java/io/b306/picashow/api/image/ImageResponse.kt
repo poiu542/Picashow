@@ -12,3 +12,4 @@ data class ImageResponse(
     @SerializedName("list")
     val list: List<ImageItem>
 )
+

@@ -98,12 +98,6 @@ fun DiaryPage() {
 
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
 
-//    LaunchedEffect(diaryTitle.value, pagerState.currentPage) {
-//        // diaryTitle이 변경되거나 페이지가 스와이프 될 때마다 실행됩니다.
-//        val selectedDate = dateFormatter.parse(diaryTitle.value)
-//        diaryViewModel.getDiaryByDate(selectedDate.time)
-//        Log.d("무한 호출인가요? ={}", "yes")
-//    }
     if(diaryDatePickerFlag.value) {ShowDatePicker(diaryTitle.value); diaryDatePickerFlag.value=false}
 }
 

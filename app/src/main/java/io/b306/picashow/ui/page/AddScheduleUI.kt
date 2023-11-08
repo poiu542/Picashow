@@ -1,9 +1,12 @@
 package io.b306.picashow.ui.page
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,12 +22,15 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
+import io.b306.picashow.UpdateImageService
+import io.b306.picashow.api.ApiObject
+import io.b306.picashow.api.image.CreateImageRequest
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.ScheduleRepository
@@ -43,8 +53,13 @@ import io.b306.picashow.ui.components.CustomTimePicker
 import io.b306.picashow.ui.components.GrayDivider
 import io.b306.picashow.ui.theme.PlaceDefault
 import io.b306.picashow.ui.theme.TextFieldCursor
+import io.b306.picashow.util.await
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDateTime
@@ -54,6 +69,7 @@ enum class TimePickerType {
     START, END
 }
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun AddSchedulePage(navController : NavController) {
 
@@ -83,6 +99,9 @@ fun AddSchedulePage(navController : NavController) {
     var showDialogTitle by remember { mutableStateOf(false) }
     var showDialogDate by remember { mutableStateOf(false) }
 
+    // 이미지 생성 후 받아올 Seq
+    var scheduleSeq by remember { mutableStateOf<Long?>(null) }
+    var hasScheduleBeenSaved by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -304,25 +323,64 @@ fun AddSchedulePage(navController : NavController) {
                         wallpaperUrl = null,
                         content = content.value,
                     )
-                    // 일정 Room에 추가하기 - imageURL은 없음
-                    scheduleViewModel.saveSchedule(schedule)
-                    /* TODO
-                        1. FastAPI 요청 보내서 이미지 URL 받기
-                        2. 받은 URL schedule 테이블에 update로 넣기
-                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기
-                        * 주의사항
-                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
-                    */
-                    val url = "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg"
-                    val url2 = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRu3WFtOVor0CH59xCanFxZ21wDCyUueV7jPg&usqp=CAU"
 
-                    // 일정 시작 10분 전부터 배경화면 바꾸기
-                    scheduleWallpaperChange(context, startDate, url)
 
-                    // 일정 추가 후 뒤로가기
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // 일정 추가
+                        withContext(Dispatchers.IO) {
+                        val scheduleSeq = scheduleViewModel.saveSchedule(schedule).await()
+                            try {
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "fantasy"))
+                                if (response.isSuccessful) {
+                                    // 성공적으로 URL을 받아옵니다.
+                                    val imageUrl = response.body().toString()
+                                    // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
+                                    Log.e("Seq", scheduleSeq.toString())
+//                                    scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), imageUrl)
+                                    val intent = Intent(context, UpdateImageService::class.java).apply {
+                                        putExtra("scheduleSeq", scheduleSeq.toString())
+                                        putExtra("newImgUrl", imageUrl)
+                                    }
+                                    context.startService(intent)
+                                    scheduleWallpaperChange(context, startDate, imageUrl)
+                                } else {
+                                    Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("ERROR", "이미지 생성 예외 발생", e)
+                            }
+                        }
+                    }
+                    // 사용자에게 피드백을 제공하고 화면을 닫습니다.
                     Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                     navController.popBackStack()
                 },
+//                        CoroutineScope(Dispatchers.Main).launch {
+//                            // 사용자가 대기하지 않아도 되도록 withContext로 네트워크 호출을 백그라운드에서 수행합니다.
+//                            withContext(Dispatchers.IO) {
+//                                try {
+//                                    // createImage 함수를 비동기적으로 호출하고 결과를 받아옵니다.
+//                                    val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value,
+//                                        "ghibli"))
+//                                    if (response.isSuccessful) {
+//                                        // 성공적으로 URL을 받아옵니다.
+//                                        response.body() ?: ""
+//                                        // 일정 시작 10분 전 배경화면 바꾸기
+//                                        scheduleWallpaperChange(context, startDate, response.body().toString())
+//                                        scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), response.body()!!)
+//                                    } else {
+//                                        Log.e("ERROR", "이미지 생성 오류")
+//                                    }
+//                                } catch (e: Exception) {
+//                                    Log.e("ERROR", "이미지 생성 예외 발생")
+//                                }
+//                            }
+//                        }
+
+                    // 일정 추가 후 뒤로가기
+//                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
+//                    navController.popBackStack()
+
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.White
@@ -331,6 +389,7 @@ fun AddSchedulePage(navController : NavController) {
             ) {
                 Text("Save", fontSize = 20.sp)
             }
+
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
