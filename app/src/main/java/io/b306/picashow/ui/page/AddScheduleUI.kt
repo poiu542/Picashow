@@ -1,5 +1,6 @@
 package io.b306.picashow.ui.page
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
@@ -23,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +51,7 @@ import io.b306.picashow.ui.components.CustomTimePicker
 import io.b306.picashow.ui.components.GrayDivider
 import io.b306.picashow.ui.theme.PlaceDefault
 import io.b306.picashow.ui.theme.TextFieldCursor
+import io.b306.picashow.util.await
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
 import kotlinx.coroutines.CoroutineScope
@@ -64,6 +67,7 @@ enum class TimePickerType {
     START, END
 }
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun AddSchedulePage(navController : NavController) {
 
@@ -93,41 +97,9 @@ fun AddSchedulePage(navController : NavController) {
     var showDialogTitle by remember { mutableStateOf(false) }
     var showDialogDate by remember { mutableStateOf(false) }
 
-    ///////////////////////////////////////////////////////////////
-    ////                     이미지 생성                        /////
-    ///////////////////////////////////////////////////////////////
-    // Composable 스코프 내에서 코루틴을 시작하기 위한 스코프를 얻습니다.
-//    val coroutineScope = rememberCoroutineScope()
-//
-//    // 상태 관리를 위한 변수
-//    var imageUrl by remember { mutableStateOf<String?>(null) }
-//    var isLoading by remember { mutableStateOf(false) }
-//    var error by remember { mutableStateOf<String?>(null) }
-//
-//    // 이미지 생성 요청
-//    fun createImage(inputText: String, userTheme: String) {
-//        isLoading = true
-//        coroutineScope.launch {
-//            try {
-//                val response = ApiObject.ImageService.createImage(CreateImageRequest(inputText, userTheme))
-//                if (response.isSuccessful) {
-//                    // 서버로부터 받은 이미지 URL을 상태에 저장
-//                    imageUrl = response.body()
-//                } else {
-//                    // 에러 메시지 처리
-//                    error = "Error: ${response.errorBody()?.string()}"
-//                }
-//            } catch (e: Exception) {
-//                error = e.localizedMessage
-//            } finally {
-//                isLoading = false
-//            }
-//        }
-//    }
-    ///////////////////////////////////////////////////////////////
-    ////                     이미지 생성                        /////
-    ///////////////////////////////////////////////////////////////
-
+    // 이미지 생성 후 받아올 Seq
+    var scheduleSeq by remember { mutableStateOf<Long?>(null) }
+    var hasScheduleBeenSaved by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -349,51 +321,59 @@ fun AddSchedulePage(navController : NavController) {
                         wallpaperUrl = null,
                         content = content.value,
                     )
-                    // 일정 Room에 추가하기 - imageURL은 없음
-                    scheduleViewModel.saveSchedule(schedule)
-                    /* TODO
-                        1. FastAPI 요청 보내서 이미지 URL 받기
-                        2. 받은 URL schedule 테이블에 update로 넣기
-                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기-해결
-                        * 주의사항
-                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯-ㄴㄴ이거알아서됨
-                    */
-//                    createImage(scheduleName.value, "지브리")
+
+
                     CoroutineScope(Dispatchers.Main).launch {
-                        // 사용자가 대기하지 않아도 되도록 withContext로 네트워크 호출을 백그라운드에서 수행합니다.
-                        val url = withContext(Dispatchers.IO) {
+                        // 일정 추가
+                        withContext(Dispatchers.IO) {
+                        val scheduleSeq = scheduleViewModel.saveSchedule(schedule).await()
                             try {
-                                // createImage 함수를 비동기적으로 호출하고 결과를 받아옵니다.
-                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "ghibli"))
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "animation"))
                                 if (response.isSuccessful) {
                                     // 성공적으로 URL을 받아옵니다.
-                                    response.body() ?: ""
-                                    Log.e("불러온 이미지 url 리스바리", response.body().toString())
-                                    Log.e("불러온 이미지 url", this.toString())
+                                    val imageUrl = response.body().toString()
+                                    // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
+                                    Log.e("Seq", scheduleSeq.toString())
+                                    scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), imageUrl)
+                                    scheduleWallpaperChange(context, startDate, imageUrl)
                                 } else {
-//                                    Toast.makeText(context, "이미지 생성 오류", Toast.LENGTH_LONG).show()
-                                    Log.e("이미지 생성 오류", "ㄲㅂ")
+                                    Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
                                 }
                             } catch (e: Exception) {
-//                                Toast.makeText(context, "이미지 생성 예외 발생", Toast.LENGTH_LONG).show()
-                                Log.e("이미지 생성 예외", "ㄲㅂ")
+                                Log.e("ERROR", "이미지 생성 예외 발생", e)
                             }
-                        }
-
-                        // URL을 받아온 후에 실행할 작업
-                        if (url.toString().isNotEmpty()) {
-                            scheduleWallpaperChange(context, startDate, url.toString())
+                    // 사용자에게 피드백을 제공하고 화면을 닫습니다.
+//                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                         }
                     }
-
-
-                    // 일정 시작 10분 전부터 배경화면 바꾸기
-//                    scheduleWallpaperChange(context, startDate, url)
-
-                    // 일정 추가 후 뒤로가기
-                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                     navController.popBackStack()
                 },
+//                        CoroutineScope(Dispatchers.Main).launch {
+//                            // 사용자가 대기하지 않아도 되도록 withContext로 네트워크 호출을 백그라운드에서 수행합니다.
+//                            withContext(Dispatchers.IO) {
+//                                try {
+//                                    // createImage 함수를 비동기적으로 호출하고 결과를 받아옵니다.
+//                                    val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value,
+//                                        "ghibli"))
+//                                    if (response.isSuccessful) {
+//                                        // 성공적으로 URL을 받아옵니다.
+//                                        response.body() ?: ""
+//                                        // 일정 시작 10분 전 배경화면 바꾸기
+//                                        scheduleWallpaperChange(context, startDate, response.body().toString())
+//                                        scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), response.body()!!)
+//                                    } else {
+//                                        Log.e("ERROR", "이미지 생성 오류")
+//                                    }
+//                                } catch (e: Exception) {
+//                                    Log.e("ERROR", "이미지 생성 예외 발생")
+//                                }
+//                            }
+//                        }
+
+                    // 일정 추가 후 뒤로가기
+//                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
+//                    navController.popBackStack()
+
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.White

@@ -11,6 +11,7 @@ import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.DiaryRepository
 import io.b306.picashow.repository.ScheduleRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -21,14 +22,14 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
 
     val schedules: LiveData<List<Schedule>> = _schedules
 
-    fun saveSchedule(schedule: Schedule) {
+    fun saveSchedule(schedule: Schedule): LiveData<Long> {
+        val result = MutableLiveData<Long>()
         viewModelScope.launch {
-            // Diary를 저장하고 저장된 Diary 객체를 _myInfo LiveData에 할당
-            repository.insert(schedule)
-
-            // 현재 LiveData를 방금 저장한 일정으로 갱신
-            _schedules.value = listOf(schedule)
+            // Room에서 새로 삽입된 행의 ID를 반환받습니다.
+            val scheduleSeq = repository.insert(schedule)
+            result.postValue(scheduleSeq)
         }
+        return result
     }
 
     fun fetchSchedulesForDate(year: Int, month: Int, day: Int) {
@@ -93,6 +94,17 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
                 repository.updateSchedule(schedule)
             }
             // 필요하다면 결과를 메인 스레드로 보내는 코드를 추가
+        }
+    }
+
+    fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
+        GlobalScope.launch(Dispatchers.IO) { // 앱의 생명주기와 독립적으로 실행
+            try {
+                Log.d("UpdateImgUrl", "Updating image URL for schedule: $scheduleSeq")
+                repository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
+            } catch (e: Exception) {
+                Log.e("UpdateImgUrl", "Error updating image URL", e)
+            }
         }
     }
 
