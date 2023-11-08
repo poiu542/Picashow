@@ -46,10 +46,6 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
 
     fun getDiaryByDate(selectedDate: Long) {
         viewModelScope.launch {
-//            val diaryList = repository.getDiaryByDate(selectedDate).asLiveData()
-//            Log.d("viewModelSelectedDate = {}", selectedDate.toString())
-//            Log.d("viewModelDiary = {}", diaryList.value.toString())
-//            _diaryList.value = diaryList.value
             repository.getDiaryByDate(selectedDate).collect {
                 _diaryList.postValue(it)
             }

@@ -8,7 +8,6 @@ import io.b306.picashow.entity.Theme
 import kotlinx.coroutines.flow.Flow
 
 class ThemeRepository(private val themeDao: ThemeDao) {
-    val allTheme: Flow<List<Theme>> = themeDao.getAll()
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
     suspend fun insert(theme: Theme) {

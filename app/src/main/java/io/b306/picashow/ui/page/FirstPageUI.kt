@@ -95,13 +95,6 @@ fun firstPage() {
             .padding(start = 10.dp, end = 10.dp)
     ) {
         Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-        Row(
-            modifier = Modifier.padding(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-//            ShowDatePicker()
-//            ShowTimePicker()
-        }
         if (!randomImageLoading.value) {ImageListFromUrls(imageUrls)}
         Dialog(imageUrls);
         DownLoadDialog(imageUrls);

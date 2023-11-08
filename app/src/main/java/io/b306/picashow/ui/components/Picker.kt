@@ -48,8 +48,7 @@ fun ShowDatePicker() {
 
             DatePickerDialog(context, { _, mYear, mMonth, mDay ->
                 selectedDate = "${mDay}/${mMonth + 1}/$mYear"
-                // selectedDate 변수에 선택된 날짜가 저장됩니다.
-                // 이 변수를 원하는 곳에서 사용하세요.
+                // selectedDate 변수에 선택된 날짜가 저장
 
             }, year, month, day).show()
         }

@@ -374,32 +374,6 @@ fun AddSchedulePage(navController : NavController) {
                     Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                     navController.popBackStack()
                 },
-//                        CoroutineScope(Dispatchers.Main).launch {
-//                            // 사용자가 대기하지 않아도 되도록 withContext로 네트워크 호출을 백그라운드에서 수행합니다.
-//                            withContext(Dispatchers.IO) {
-//                                try {
-//                                    // createImage 함수를 비동기적으로 호출하고 결과를 받아옵니다.
-//                                    val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value,
-//                                        "ghibli"))
-//                                    if (response.isSuccessful) {
-//                                        // 성공적으로 URL을 받아옵니다.
-//                                        response.body() ?: ""
-//                                        // 일정 시작 10분 전 배경화면 바꾸기
-//                                        scheduleWallpaperChange(context, startDate, response.body().toString())
-//                                        scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), response.body()!!)
-//                                    } else {
-//                                        Log.e("ERROR", "이미지 생성 오류")
-//                                    }
-//                                } catch (e: Exception) {
-//                                    Log.e("ERROR", "이미지 생성 예외 발생")
-//                                }
-//                            }
-//                        }
-
-                    // 일정 추가 후 뒤로가기
-//                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
-//                    navController.popBackStack()
-
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.White

@@ -59,15 +59,6 @@ fun MainScreen(navController: NavHostController) {
     var showAppBarAndNavBar by remember { mutableStateOf(true) }  // 상태 변수 추가
     val updatedNavController = rememberUpdatedState(navController)
 
-    val context = LocalContext.current
-    val memberDao = AppDatabase.getDatabase(context).memberDao()
-    val memberRepository = MemberRepository(memberDao)
-    val memberViewModelFactory = MemberViewModelFactory(memberRepository)
-
-    val memberViewModel = viewModel<MemberViewModel>(
-        factory = memberViewModelFactory
-    )
-
     var showDialogTitle by remember { mutableStateOf(false) }
 
     // NavController의 back stack entry를 관찰

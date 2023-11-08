@@ -60,19 +60,18 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
                 schedule.content = updatedScheduleData.content
                 schedule.endDate = updatedScheduleData.endDate
                 schedule.startDate = updatedScheduleData.startDate
-                // 이미지 다시 뽑기가 필요하면 아래 주석을 풀어줍니다
+                // 이미지 다시 뽑기가 필요하면 아래 주석을 풀면 된다
                 // schedule.wallpaperUrl = updatedScheduleData.wallpaperUrl
 
                 // 업데이트 메서드 호출
                 repository.updateSchedule(schedule)
             }
-            // 필요하다면 결과를 메인 스레드로 보내는 코드를 추가
+            // 필요하다면 결과를 메인 스레드로 보내는 코드 추가
         }
     }
 
     fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
         viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
-            Log.d("여옵니다1", "뷰모달")
             repository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
         }
     }

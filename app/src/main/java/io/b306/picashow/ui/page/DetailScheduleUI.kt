@@ -437,9 +437,6 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                             }
                         }
                     }
-//
-//                    // 일정 시작 10분 전부터 배경화면 바꾸기
-//                    scheduleWallpaperChange(context, startDate, url)
 
                     Toast.makeText(context, "The schedule has been modified", Toast.LENGTH_LONG).show()
 
