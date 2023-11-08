@@ -8,14 +8,14 @@ pipeline {
             steps {
                 // FastAPI 애플리케이션을 도커 이미지로 빌드
                 script {
-                    sh docker build -t $DOCKER_IMAGE_NAME -f Dockerfile.Dockerfile .
+                    sh 'docker build -t $DOCKER_IMAGE_NAME -f Dockerfile.Dockerfile .'
                 }
             }
         }
         stage('Deploy') {
             steps {
                 script {
-                    sh docker container run -d -p 8000:8000 $DOCKER_IMAGE_NAME
+                    sh 'docker container run -d -p 8000:8000 $DOCKER_IMAGE_NAME'
                 }
             }
         }
