@@ -65,20 +65,24 @@ import androidx.compose.ui.window.Dialog as Dialog
 
 var tutorialImageUrls = mutableListOf(
     arrayOf(
-    "https://mblogthumb-phinf.pstatic.net/MjAxOTAzMTlfMjYy/MDAxNTUyOTI4OTcyMDgw.USYJbzqsCIe02lwsQ1qNSodtNFKKeaIumsOMNio-ffcg.g27f78YWMeUuZCjOh8PeZrMODh6o1S8AtOEXDENwb9og.JPEG.hongseull/%EB%A7%88%EB%85%80%EB%B0%B0%EB%8B%AC%EB%B6%80_%ED%82%A4%ED%82%A4.jpg?type=w800",
-    "https://i.pinimg.com/564x/5e/7c/e1/5e7ce110221f9dbc96579c978da62aa8.jpg",
-    "https://i.pinimg.com/originals/22/de/92/22de92092890e1540ca5015818f5c3cd.jpg",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRu3WFtOVor0CH59xCanFxZ21wDCyUueV7jPg&usqp=CAU",
-    "https://images.unsplash.com/photo-1659951345629-091600ae202c?auto=format&fit=crop&q=80&w=435&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://mblogthumb-phinf.pstatic.net/MjAxODAxMjFfMTMy/MDAxNTE2NTQyOTA0Mzk3.sodrPAj7QOabX0S6tKObbbAGo9xXkX3QiauDEU0ShTgg.olNXD3GdYDF3JH9C36dnI1NUuuJdcfv61uBTCVR2c1Eg.JPEG.knicjin/20180121-010.jpg?type=w800",
-    ),
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-2639669529690009063.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-5238680096499836867.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-4610657644614568213.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-4608192120304862152.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/3560503986219592235.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/4517837980666991645.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8406365908455495805.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8587172660287848677.png"
+     ),
     arrayOf(
-    "zebri",
-    "europe",
-    "future",
-    "science",
-    "greece",
-    "sky"
+        "realistic",
+        "ghibli",
+        "animation",
+        "fantasy",
+        "van gosh",
+        "picasso",
+        "europe",
+        "animation"
     )
 )
 

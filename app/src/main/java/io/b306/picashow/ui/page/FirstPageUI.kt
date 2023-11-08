@@ -74,18 +74,10 @@ var selectedImageIndex =  mutableIntStateOf(0) // 선택된 이미지의 인덱�
 
 @Composable
 fun firstPage() {
-    val imageUrls = remember {
-        mutableStateOf(listOf(
-            "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99CD22415AC8CA2E2B",
-            "https://images.unsplash.com/photo-1659951345629-091600ae202c?auto=format&fit=crop&q=80&w=435&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            "https://mblogthumb-phinf.pstatic.net/MjAxODAxMjFfMTMy/MDAxNTE2NTQyOTA0Mzk3.sodrPAj7QOabX0S6tKObbbAGo9xXkX3QiauDEU0ShTgg.olNXD3GdYDF3JH9C36dnI1NUuuJdcfv61uBTCVR2c1Eg.JPEG.knicjin/20180121-010.jpg?type=w800",
-            "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg",
-            "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99DBC5375AC8CA3328",
-            "https://i.pinimg.com/originals/2e/ba/8c/2eba8c6bc08626a0929b83347eff3b05.jpg",
-        ))}
+    val imageUrls = remember { mutableStateOf(emptyList<String>()) }
     // 랜더링 이전에 랜덤 사진 요청
     LaunchedEffect(Unit) {
-//        randomImage()
+        randomImage(imageUrls,1)
         randomImageLoading.value = false
     }
     // Loading 상태 초기화
@@ -120,7 +112,7 @@ suspend fun randomImage(imageListState: MutableState<List<String>>, page: Int) {
     try {
         val response = ApiObject.ImageService.getAllImages(page)
         val urlList = response.body()?.list
-
+        Log.d("배열",urlList.toString())
         // Check if the list is not null and not empty
         if (!urlList.isNullOrEmpty()) {
             // Extract the URLs
@@ -277,7 +269,8 @@ fun Dialog(imageListState: MutableState<List<String>>) {
                         // If the current page is the last page, launch a coroutine to call randomImage function
                         if (pagerState.currentPage == imageListState.value.size - 1) {
                             coroutineScope.launch {
-//                                randomImage()
+                                randomImage(imageListState, (pagerState.currentPage+1)/15+1)
+                                Log.d("string",(pagerState.currentPage).toString())
                             }
                         }
                     }
