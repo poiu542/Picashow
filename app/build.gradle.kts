@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "io.b306.picashow"
+    namespace = "io.b101.picashow"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "io.b306.picashow"
+        applicationId = "io.b101.picashow"
         minSdk = 26
         targetSdk = 33
         versionCode = 1
