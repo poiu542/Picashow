@@ -20,16 +20,12 @@ interface ScheduleDao: BaseDao<Schedule> {
     @Query("SELECT * FROM schedule WHERE startDate >= :startTimestamp AND startDate < :endTimestamp")
     fun getSchedulesForDate(startTimestamp: Long, endTimestamp: Long): Flow<List<Schedule>>
 
-    @Query("SELECT * FROM schedule WHERE scheduleSeq = :id")
-    fun getScheduleById(id: String): Schedule?
+    @Query("SELECT * FROM schedule WHERE scheduleSeq = :scheduleSeq")
+    fun getScheduleById(scheduleSeq: String): Schedule?
 
     @Update
     override suspend fun update(schedule: Schedule)
 
     @Query("UPDATE schedule SET wallpaperUrl = :newImgUrl WHERE scheduleSeq = :scheduleSeq")
     suspend fun updateWallpaperUrl(scheduleSeq: String, newImgUrl: String)
-//    {
-//        Log.e("여옵니다3", scheduleSeq)
-//        Log.e("여옵니다3", newImgUrl)
-//    }
 }

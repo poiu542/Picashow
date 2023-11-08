@@ -42,7 +42,6 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
 
     @WorkerThread
     suspend fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
-        Log.e("여옵니다2", "레토리")
         scheduleDao.updateWallpaperUrl(scheduleSeq, newImgUrl)
     }
 }

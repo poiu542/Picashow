@@ -1,7 +1,9 @@
 package io.b306.picashow.ui.page
 
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,10 +32,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
+import io.b306.picashow.R
+import io.b306.picashow.UpdateImageService
+import io.b306.picashow.api.ApiObject
+import io.b306.picashow.api.image.CreateImageRequest
 import io.b306.picashow.database.AppDatabase
 import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.ScheduleRepository
@@ -43,8 +51,13 @@ import io.b306.picashow.ui.components.CustomTimePicker
 import io.b306.picashow.ui.components.GrayDivider
 import io.b306.picashow.ui.theme.PlaceDefault
 import io.b306.picashow.ui.theme.TextFieldCursor
+import io.b306.picashow.util.await
 import io.b306.picashow.viewmodel.ScheduleViewModel
 import io.b306.picashow.viewmodel.ScheduleViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -71,6 +84,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
     val selectedEndDate = remember { mutableStateOf(LocalDateTime.now()) }
     val scheduleName = remember { mutableStateOf("") }
     val content = remember { mutableStateOf("") }
+    val imageURL = remember { mutableStateOf("") }
 
     // 시간 선택기 상태를 관리할 MutableState를 정의
     var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
@@ -86,6 +100,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 scheduleDetails?.let {
                     scheduleName.value = it.scheduleName ?: ""
                     content.value = it.content ?: ""
+                    imageURL.value = it.wallpaperUrl ?: ""
 
                     // 날짜 및 시간 설정
                     it.startDate?.let { startDate ->
@@ -295,6 +310,27 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
+
+            if(imageURL.value == "") {
+                Text(color = Color.White, text = "No images have been created yet.", fontSize = 15.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.null_image),
+                    contentDescription = "Displayed Image", // 접근성 설명
+                    modifier = Modifier
+                        .fillMaxWidth() // 이미지를 최대 너비로 채우도록 설정
+                        .height(300.dp) // 원하는 높이로 설정
+                )
+            } else {
+                Image(
+                    painter = rememberImagePainter(imageURL.value), // 이미지 URL
+                    contentDescription = "Displayed Image", // 접근성 설명
+                    modifier = Modifier
+                        .fillMaxWidth() // 이미지를 최대 너비로 채우도록 설정
+                        .height(300.dp) // 원하는 높이로 설정
+                )
+            }
+
         }
         Row(
             modifier = Modifier
@@ -345,11 +381,33 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                         * 주의사항
                         - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
                     */
-                    val url = "https://i.pinimg.com/736x/85/d7/de/85d7de9a4a4d55a198dfcfd00a045f84.jpg"
-                    val url2 = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRu3WFtOVor0CH59xCanFxZ21wDCyUueV7jPg&usqp=CAU"
-
-                    // 일정 시작 10분 전부터 배경화면 바꾸기
-                    scheduleWallpaperChange(context, startDate, url)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // 일정 추가
+                        withContext(Dispatchers.IO) {
+                            try {
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "fantasy"))
+                                if (response.isSuccessful) {
+                                    // 성공적으로 URL을 받아옵니다.
+                                    val imageUrl = response.body().toString()
+                                    // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
+                                    Log.e("Seq", scheduleSeq)
+                                    val intent = Intent(context, UpdateImageService::class.java).apply {
+                                        putExtra("scheduleSeq", scheduleSeq)
+                                        putExtra("newImgUrl", imageUrl)
+                                    }
+                                    context.startService(intent)
+                                    scheduleWallpaperChange(context, startDate, imageUrl)
+                                } else {
+                                    Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("ERROR", "이미지 생성 예외 발생", e)
+                            }
+                        }
+                    }
+//
+//                    // 일정 시작 10분 전부터 배경화면 바꾸기
+//                    scheduleWallpaperChange(context, startDate, url)
 
                     Toast.makeText(context, "The schedule has been modified", Toast.LENGTH_LONG).show()
 
@@ -364,6 +422,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
             ) {
                 Text("Save", fontSize = 20.sp)
             }
+
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",

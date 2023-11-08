@@ -3,6 +3,7 @@ package io.b306.picashow.ui.page
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import io.b306.picashow.UpdateImageService
 import io.b306.picashow.api.ApiObject
 import io.b306.picashow.api.image.CreateImageRequest
 import io.b306.picashow.database.AppDatabase
@@ -328,13 +330,18 @@ fun AddSchedulePage(navController : NavController) {
                         withContext(Dispatchers.IO) {
                         val scheduleSeq = scheduleViewModel.saveSchedule(schedule).await()
                             try {
-                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "animation"))
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(scheduleName.value, "fantasy"))
                                 if (response.isSuccessful) {
                                     // 성공적으로 URL을 받아옵니다.
                                     val imageUrl = response.body().toString()
                                     // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
                                     Log.e("Seq", scheduleSeq.toString())
-                                    scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), imageUrl)
+//                                    scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), imageUrl)
+                                    val intent = Intent(context, UpdateImageService::class.java).apply {
+                                        putExtra("scheduleSeq", scheduleSeq.toString())
+                                        putExtra("newImgUrl", imageUrl)
+                                    }
+                                    context.startService(intent)
                                     scheduleWallpaperChange(context, startDate, imageUrl)
                                 } else {
                                     Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
@@ -342,10 +349,10 @@ fun AddSchedulePage(navController : NavController) {
                             } catch (e: Exception) {
                                 Log.e("ERROR", "이미지 생성 예외 발생", e)
                             }
-                    // 사용자에게 피드백을 제공하고 화면을 닫습니다.
-//                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                         }
                     }
+                    // 사용자에게 피드백을 제공하고 화면을 닫습니다.
+                    Toast.makeText(context, "Schedule has been added", Toast.LENGTH_LONG).show()
                     navController.popBackStack()
                 },
 //                        CoroutineScope(Dispatchers.Main).launch {

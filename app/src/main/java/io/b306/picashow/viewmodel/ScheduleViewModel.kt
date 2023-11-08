@@ -11,7 +11,6 @@ import io.b306.picashow.entity.Schedule
 import io.b306.picashow.repository.DiaryRepository
 import io.b306.picashow.repository.ScheduleRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -41,14 +40,6 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
         }
     }
 
-//    fun getScheduleById(id: String): LiveData<Schedule?> {
-//        val result = MutableLiveData<Schedule?>()
-//        viewModelScope.launch(Dispatchers.IO) {
-//            // 백그라운드 스레드에서 데이터베이스 작업을 실행
-//            result.postValue(repository.getScheduleById(id))
-//        }
-//        return result
-//    }
     fun getScheduleById(id: String, onScheduleLoaded: (Schedule?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             // 백그라운드 스레드에서 데이터베이스 작업을 실행
@@ -60,24 +51,6 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
         }
     }
 
-
-//    fun updateSchedule(scheduleSeq: String, updatedScheduleData: Schedule) {
-//        viewModelScope.launch {
-//            val existingSchedule = repository.getScheduleById(scheduleSeq)
-//            existingSchedule?.let { schedule ->
-//                // 업데이트할 속성 설정
-//                schedule.scheduleName = updatedScheduleData.scheduleName
-//                schedule.content = updatedScheduleData.content
-//                schedule.endDate = updatedScheduleData.endDate
-//                schedule.startDate = updatedScheduleData.startDate
-//                // 이거 나중에 이미지 다시 뽑기 할 거면 아래 주석 풀면 됨
-//                // schedule.wallpaperUrl = updatedScheduleData.wallpaperUrl
-//
-//                // 업데이트 메서드 호출
-//                repository.updateSchedule(schedule)
-//            }
-//        }
-//    }
     fun updateSchedule(scheduleSeq: String, updatedScheduleData: Schedule) {
         viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
             val existingSchedule = repository.getScheduleById(scheduleSeq)
@@ -98,13 +71,9 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
     }
 
     fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
-        GlobalScope.launch(Dispatchers.IO) { // 앱의 생명주기와 독립적으로 실행
-            try {
-                Log.d("UpdateImgUrl", "Updating image URL for schedule: $scheduleSeq")
-                repository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
-            } catch (e: Exception) {
-                Log.e("UpdateImgUrl", "Error updating image URL", e)
-            }
+        viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
+            Log.d("여옵니다1", "뷰모달")
+            repository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
         }
     }
 
