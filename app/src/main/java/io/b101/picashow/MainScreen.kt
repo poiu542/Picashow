@@ -24,15 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import io.b101.picashow.database.AppDatabase
-import io.b101.picashow.repository.MemberRepository
 import io.b101.picashow.ui.components.BottomNavigation
 import io.b101.picashow.ui.components.BottomNavigationItem
 import io.b101.picashow.ui.components.CustomAlertDialog
@@ -46,13 +42,10 @@ import io.b101.picashow.ui.page.firstPage
 import io.b101.picashow.ui.page.tutorialPage
 import io.b101.picashow.ui.theme.imgMint
 import io.b101.picashow.ui.theme.imgPurple
-import io.b101.picashow.viewmodel.MemberViewModel
-import io.b101.picashow.viewmodel.MemberViewModelFactory
 import io.b101.picashow.viewmodel._myInfo
-import io.b101.picashow.R
 import kotlinx.coroutines.CoroutineScope
 
-var flag = mutableStateOf(false)
+var tutorialStateCheck = mutableStateOf(false)
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -95,9 +88,9 @@ fun MainScreen(navController: NavHostController) {
                     end = 16.dp
                 )
         ) {
-            flag.value = _myInfo.value?.isTutorial!!
+            tutorialStateCheck.value = _myInfo.value?.isTutorial!!
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
-            if (showAppBarAndNavBar && flag.value) {
+            if (showAppBarAndNavBar && tutorialStateCheck.value) {
 //                val currentRoute = navController.currentDestination?.route
                 TopAppBar(
                     title = title,
@@ -127,7 +120,7 @@ fun MainScreen(navController: NavHostController) {
                     .weight(1f)
                     .fillMaxSize()
             ) {
-                val startDestination = if (!flag.value) "tutorialPage" else "secondPage"
+                val startDestination = if (!tutorialStateCheck.value) "tutorialPage" else "secondPage"
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage(navController) }
@@ -163,12 +156,13 @@ fun MainScreen(navController: NavHostController) {
                                 painter = painterResource(id = R.drawable.calender),
                                 contentDescription = null,
                                 modifier = Modifier.size(30.dp),
-                                colorFilter = if (currentRoute == "firstPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
+                                colorFilter = if (currentRoute == "firstPage") ColorFilter.tint(
+                                    imgPurple) else ColorFilter.tint(
                                     imgMint) // 선택 여부에 따라 색상을 설정합니다.
                             )
                         },
                         selected = navController.currentDestination?.route == "firstPage",
-                        onClick = { navController.navigate("firstPage") }
+                        onClick = { if(navController.currentDestination?.route!="firstPage") navController.navigate("firstPage") }
                     ),
                     BottomNavigationItem(
                         icon = {
@@ -181,7 +175,7 @@ fun MainScreen(navController: NavHostController) {
                             )
                         },
                         selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
-                        onClick = { navController.navigate("secondPage") }
+                        onClick = { if(navController.currentDestination?.route!="secondPage") navController.navigate("secondPage") }
                     ),
                     BottomNavigationItem(
                         icon = {
@@ -194,10 +188,10 @@ fun MainScreen(navController: NavHostController) {
                             )
                         },
                         selected = navController.currentDestination?.route == "thirdPage",
-                        onClick = { navController.navigate("thirdPage") }
+                        onClick = { if(navController.currentDestination?.route!="thirdPage") navController.navigate("thirdPage") }
                     )
                 )
-            if (showAppBarAndNavBar && flag.value) {
+            if (showAppBarAndNavBar && tutorialStateCheck.value) {
                 BottomNavigation(
                     items = bottomNavItems
                 )

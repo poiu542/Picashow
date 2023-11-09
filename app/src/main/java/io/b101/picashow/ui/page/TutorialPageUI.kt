@@ -5,7 +5,6 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -51,7 +50,7 @@ import coil.compose.rememberImagePainter
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Member
 import io.b101.picashow.entity.Theme
-import io.b101.picashow.flag
+import io.b101.picashow.tutorialStateCheck
 import io.b101.picashow.repository.MemberRepository
 import io.b101.picashow.repository.ThemeRepository
 import io.b101.picashow.ui.theme.teal40
@@ -148,7 +147,7 @@ fun mainTutorial() {
                 .clickable {
                     if(selectedImageIndices.isEmpty())  Toast.makeText(context, "Please select one or more preferred images.", Toast.LENGTH_SHORT).show()
                     else {
-                        flag.value = true
+                        tutorialStateCheck.value = true
 
                         var themeList = mutableStateListOf<Theme>()
                         for (i in selectedImageIndices) {

@@ -52,6 +52,7 @@ import com.google.accompanist.pager.rememberPagerState
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Diary
 import io.b101.picashow.repository.DiaryRepository
+import io.b101.picashow.ui.theme.Purple40
 import io.b101.picashow.ui.theme.teal40
 import io.b101.picashow.viewmodel.DiaryViewModel
 import io.b101.picashow.viewmodel.DiaryViewModelFactory
@@ -92,9 +93,7 @@ fun DiaryPage() {
     // 사용자가 선택한 날짜를 String으로 가져옴
     val selectedDateStr = diaryTitle.value
 
-    // 선택한 날짜를 Date로 변환
-    val selectedDate = dateFormatter.parse(selectedDateStr)
-        ImageCompo(diaryViewModel = diaryViewModel) // 페이지별로 Image를 그립니다.
+    ImageCompo(diaryViewModel = diaryViewModel) // 페이지별로 Image를 그립니다.
 
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
 
@@ -152,7 +151,7 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                            .padding(start = 16.dp, end = 16.dp)
                     ) {
                         DateText(diaryTitle.value) { }
                     }
@@ -205,6 +204,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
             .fillMaxWidth()
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(1.dp))
             .padding(4.dp)
+            .heightIn(min = 90.dp)
 
         Box(
             modifier = titleBoxModifier,
@@ -249,7 +249,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
                     .padding(16.dp),
                 colors = ButtonDefaults.buttonColors(teal40)
             ) {
-                Text(text = "일기 수정")
+                Text(text = "Modify")
             }
         } else {
             Row(
@@ -269,7 +269,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
                         .padding(8.dp),
                     colors = ButtonDefaults.buttonColors(teal40)
                 ) {
-                    Text(text = "완료")
+                    Text(text = "Complete")
                 }
 
                 Button(
@@ -280,9 +280,9 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
                     modifier = Modifier
                         .weight(1f)
                         .padding(8.dp),
-                    colors = ButtonDefaults.buttonColors(teal40)
+                    colors = ButtonDefaults.buttonColors(Purple40)
                 ) {
-                    Text(text = "취소")
+                    Text(text = "Cancel")
                 }
             }
         }
@@ -359,7 +359,7 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
             .padding(16.dp),
         colors = ButtonDefaults.buttonColors(teal40)
     ) {
-        Text(text = "일기 저장")
+        Text(text = "Diary save")
     }
 }
 

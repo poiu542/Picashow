@@ -38,7 +38,7 @@ fun TopAppBar(
             Icon(
                 Icons.Default.List,
                 contentDescription = null,
-                tint = Color.White
+                tint = Color.Black
             )
         } else {
             Box {}
