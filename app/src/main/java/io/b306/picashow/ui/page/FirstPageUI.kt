@@ -94,7 +94,6 @@ fun firstPage() {
             .fillMaxSize()
             .padding(start = 10.dp, end = 10.dp)
     ) {
-        Text(text = "All BACKGROUND", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
         if (!randomImageLoading.value) {ImageListFromUrls(imageUrls)}
         Dialog(imageUrls);
         DownLoadDialog(imageUrls);
