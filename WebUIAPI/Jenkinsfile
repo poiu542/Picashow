@@ -17,7 +17,12 @@ pipeline {
         stage('Deploy') {
             steps {
                 dir('WebUIAPI') {
-                    sh 'docker container run -d -p 8082:8000 freepjt:0.5'
+                    sh '''
+		docker stop freepjt
+		docker rm freepjt
+		docker container run -d -p 8082:8000 --name freepjt freepjt:0.5
+		docker images -f "dangling=true" -q | xargs -r docker rmi
+		'''
                 }
             }
         }
