@@ -24,15 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import io.b306.picashow.database.AppDatabase
-import io.b306.picashow.repository.MemberRepository
 import io.b306.picashow.ui.components.BottomNavigation
 import io.b306.picashow.ui.components.BottomNavigationItem
 import io.b306.picashow.ui.components.CustomAlertDialog
@@ -46,12 +42,10 @@ import io.b306.picashow.ui.page.firstPage
 import io.b306.picashow.ui.page.tutorialPage
 import io.b306.picashow.ui.theme.imgMint
 import io.b306.picashow.ui.theme.imgPurple
-import io.b306.picashow.viewmodel.MemberViewModel
-import io.b306.picashow.viewmodel.MemberViewModelFactory
 import io.b306.picashow.viewmodel._myInfo
 import kotlinx.coroutines.CoroutineScope
 
-var flag = mutableStateOf(false)
+var tutorialStateCheck = mutableStateOf(false)
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -59,23 +53,14 @@ fun MainScreen(navController: NavHostController) {
     var showAppBarAndNavBar by remember { mutableStateOf(true) }  // 상태 변수 추가
     val updatedNavController = rememberUpdatedState(navController)
 
-    val context = LocalContext.current
-    val memberDao = AppDatabase.getDatabase(context).memberDao()
-    val memberRepository = MemberRepository(memberDao)
-    val memberViewModelFactory = MemberViewModelFactory(memberRepository)
-
-    val memberViewModel = viewModel<MemberViewModel>(
-        factory = memberViewModelFactory
-    )
-
     var showDialogTitle by remember { mutableStateOf(false) }
 
     // NavController의 back stack entry를 관찰
     val block: suspend CoroutineScope.() -> Unit = {
         updatedNavController.value.addOnDestinationChangedListener { _, destination, _ ->
             title = when (destination.route) {
-                "firstPage" -> "Calendar"
-                "secondPage" -> "Main Page"
+                "firstPage" -> "Images"
+                "secondPage" -> "Schedule"
                 "thirdPage" -> "Diary"
                 "addSchedulePage", "detailPage/{scheduleSeq}" -> "" // 이제 detailPage에서도 타이틀을 비웁니다.
                 else -> "Schedule"
@@ -103,9 +88,9 @@ fun MainScreen(navController: NavHostController) {
                     end = 16.dp
                 )
         ) {
-            flag.value = _myInfo.value?.isTutorial!!
+            tutorialStateCheck.value = _myInfo.value?.isTutorial!!
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
-            if (showAppBarAndNavBar && flag.value) {
+            if (showAppBarAndNavBar && tutorialStateCheck.value) {
 //                val currentRoute = navController.currentDestination?.route
                 TopAppBar(
                     title = title,
@@ -135,7 +120,7 @@ fun MainScreen(navController: NavHostController) {
                     .weight(1f)
                     .fillMaxSize()
             ) {
-                val startDestination = if (!flag.value) "tutorialPage" else "secondPage"
+                val startDestination = if (!tutorialStateCheck.value) "tutorialPage" else "secondPage"
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage(navController) }
@@ -176,7 +161,7 @@ fun MainScreen(navController: NavHostController) {
                             )
                         },
                         selected = navController.currentDestination?.route == "firstPage",
-                        onClick = { navController.navigate("firstPage") }
+                        onClick = { if(navController.currentDestination?.route!="firstPage") navController.navigate("firstPage") }
                     ),
                     BottomNavigationItem(
                         icon = {
@@ -189,7 +174,7 @@ fun MainScreen(navController: NavHostController) {
                             )
                         },
                         selected = navController.currentDestination?.route == "secondPage" || navController.previousBackStackEntry == null,
-                        onClick = { navController.navigate("secondPage") }
+                        onClick = { if(navController.currentDestination?.route!="secondPage") navController.navigate("secondPage") }
                     ),
                     BottomNavigationItem(
                         icon = {
@@ -202,10 +187,10 @@ fun MainScreen(navController: NavHostController) {
                             )
                         },
                         selected = navController.currentDestination?.route == "thirdPage",
-                        onClick = { navController.navigate("thirdPage") }
+                        onClick = { if(navController.currentDestination?.route!="thirdPage") navController.navigate("thirdPage") }
                     )
                 )
-            if (showAppBarAndNavBar && flag.value) {
+            if (showAppBarAndNavBar && tutorialStateCheck.value) {
                 BottomNavigation(
                     items = bottomNavItems
                 )

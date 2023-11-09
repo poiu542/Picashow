@@ -8,7 +8,6 @@ import io.b306.picashow.entity.Theme
 import kotlinx.coroutines.flow.Flow
 
 class ThemeRepository(private val themeDao: ThemeDao) {
-    val allTheme: Flow<List<Theme>> = themeDao.getAll()
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
     suspend fun insert(theme: Theme) {
@@ -38,4 +37,7 @@ class ThemeRepository(private val themeDao: ThemeDao) {
     suspend fun insertAll(themes: List<Theme>) {
         themeDao.insertAll(themes)
     }
+
+    // 모든 테마의 keyWord 데이터를 불러오는 함수
+    val allKeywords: Flow<List<String>> = themeDao.getAllKeywords()
 }

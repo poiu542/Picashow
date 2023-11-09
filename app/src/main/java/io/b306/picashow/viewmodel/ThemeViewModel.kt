@@ -3,6 +3,7 @@ package io.b306.picashow.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import io.b306.picashow.entity.Theme
 import io.b306.picashow.repository.ThemeRepository
@@ -11,6 +12,10 @@ import kotlinx.coroutines.launch
 class ThemeViewModel(private val repository: ThemeRepository) : ViewModel() {
     private val _myInfo = MutableLiveData<Theme?>()
     val myInfo: LiveData<Theme?> get() = _myInfo
+
+    private val _allKeywords = MutableLiveData<List<String>>()
+    // 모든 테마의 keyWord 데이터를 불러오는 함수
+    val allKeywords: LiveData<List<String>> = repository.allKeywords.asLiveData()
 
     // Theme를 저장하는 함수
     fun saveTheme(theme: Theme) {
@@ -53,6 +58,8 @@ class ThemeViewModel(private val repository: ThemeRepository) : ViewModel() {
             repository.insertAll(themes)
         }
     }
+
+
 }
 
 
