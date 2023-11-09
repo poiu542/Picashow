@@ -14,7 +14,7 @@
 .idea
 
 #requirement
-requirements.txt
+#requirements.txt
 
 # AWS User-specific
 .idea/**/aws.xml
