@@ -9,7 +9,7 @@ pipeline {
                     script {
                         sh 'cd /var/jenkins_home/workspace/backend-fastAPI/WebUIAPI'
                         sh 'ls'
-                        sh 'docker build -t freepjt:0.4 -f Dockerfile.Dockerfile .'
+                        sh 'docker build -t freepjt:0.5 -f Dockerfile.Dockerfile .'
                     }
                 }
             }
@@ -17,7 +17,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 dir('WebUIAPI') {
-                    sh 'docker container run -d -p 8000:8000 freepjt:0.4'
+                    sh 'docker container run -d -p 8082:8000 freepjt:0.5'
                 }
             }
         }
