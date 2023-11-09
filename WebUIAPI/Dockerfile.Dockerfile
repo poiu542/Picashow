@@ -2,7 +2,7 @@ FROM python:3.7.16
 
 RUN /usr/local/bin/python -m pip install --upgrade pip
 
-WORKDIR /app
+WORKDIR /var/jenkins_home/workspace/backend-fastAPI/WebUIAPI/app
 
 #COPY ./app/main.py /app/
 #COPY ./app/requirements.txt /app
