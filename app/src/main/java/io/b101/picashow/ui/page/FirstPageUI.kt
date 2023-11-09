@@ -66,36 +66,24 @@ import kotlinx.coroutines.launch
 
 
 // 랜덤 이미지를 추가로 가져오기 위한 변수
-var randomImageLoading = mutableStateOf(true) // 랜덤 이미지 상태 관리
 var showBigImage =  mutableStateOf(false) // 이미지 크게 보기 상태 관리
 var showDownloadDialog =  mutableStateOf(false) // 다운로드 다이얼로그 상태 관리
 var selectedImageUrl=  mutableStateOf("") // 선택된 이미지의 URL
 var selectedImageIndex =  mutableIntStateOf(0) // 선택된 이미지의 인덱스
-var nowPage = mutableIntStateOf(0)
+var nowPage = mutableIntStateOf(1)
 val imageUrls = mutableStateOf(emptyList<String>())
 @Composable
 fun firstPage() {
-//    val imageUrls = remember { mutableStateOf(emptyList<String>()) }
     // 랜더링 이전에 랜덤 사진 요청
     LaunchedEffect(Unit) {
-        if(nowPage.value==0) randomImage(imageUrls,1)
-        randomImageLoading.value = false
+        if(nowPage.value==1) randomImage(imageUrls,1)
     }
-    // Loading 상태 초기화
-    DisposableEffect(Unit) {
-        onDispose {
-            randomImageLoading.value = true
-            // 여기에 실행해야 할 코드를 작성하세요.
-        }
-    }
-    // TODO 첫번째 캘린더 - 두현이 페이지
-//    scheduleWallpaperChange(LocalContext.current);
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 10.dp, end = 10.dp)
     ) {
-        if (!randomImageLoading.value) {ImageListFromUrls(imageUrls)}
+        ImageListFromUrls(imageUrls)
         Dialog(imageUrls);
         DownLoadDialog(imageUrls);
     }
