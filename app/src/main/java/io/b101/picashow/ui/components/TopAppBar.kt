@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun TopAppBar(
     title: String,
-    showIcon: Boolean = true,
+    showIcon: Boolean = false,
     endContent: @Composable (Modifier) -> Unit // endContent는 @Composable 람다식으로 받습니다.
 ) {
     Row(
