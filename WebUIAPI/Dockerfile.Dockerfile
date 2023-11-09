@@ -6,8 +6,8 @@ WORKDIR /app
 #COPY ./app/requirements.txt /app
 COPY . /app
 
-#RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+#RUN pip install -r /app/requirements.txt
 
 EXPOSE 8000
 
