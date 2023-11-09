@@ -8,6 +8,7 @@ pipeline {
                     // FastAPI 애플리케이션을 도커 이미지로 빌드
                     script {
                         sh 'cd /var/jenkins_home/workspace/backend-fastAPI/WebUIAPI'
+                        sh 'ls'
                         sh 'docker build -t freepjt:0.4 -f Dockerfile.Dockerfile .'
                     }
                 }
