@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,10 +53,16 @@ import com.google.accompanist.pager.rememberPagerState
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Diary
 import io.b101.picashow.repository.DiaryRepository
+import io.b101.picashow.repository.ScheduleRepository
+import io.b101.picashow.repository.ThemeRepository
 import io.b101.picashow.ui.theme.Purple40
 import io.b101.picashow.ui.theme.teal40
 import io.b101.picashow.viewmodel.DiaryViewModel
 import io.b101.picashow.viewmodel.DiaryViewModelFactory
+import io.b101.picashow.viewmodel.ScheduleViewModel
+import io.b101.picashow.viewmodel.ScheduleViewModelFactory
+import io.b101.picashow.viewmodel.ThemeViewModel
+import io.b101.picashow.viewmodel.ThemeViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -86,6 +93,14 @@ fun DiaryPage() {
     val diaryViewModel = viewModel<DiaryViewModel>(
         factory = diaryViewModelFactory
     )
+
+    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
+    // 2. ScheduleDao 인스턴스를 사용하여 ScheduleRepository의 인스턴스를 생성합니다.
+    val repository = ScheduleRepository(scheduleDao)
+    // 3. ScheduleRepository 인스턴스를 사용하여 ScheduleViewModelFactory의 인스턴스를 생성합니다.
+    val viewModelFactory = ScheduleViewModelFactory(repository)
+    // 4. ScheduleViewModelFactory를 사용하여 ViewModel 인스턴스를 얻습니다.
+    val scheduleViewModel: ScheduleViewModel = viewModel(factory = viewModelFactory)
 
     // 날짜 포맷터
     val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -291,17 +306,51 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
 
 @Composable
 fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
-    var text by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
+    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
+    val scheduleRepository = ScheduleRepository(scheduleDao)
+    val scheduleViewModelFactory = ScheduleViewModelFactory(scheduleRepository)
+    val scheduleViewModel: ScheduleViewModel = viewModel(factory = scheduleViewModelFactory)
+
+    val themeDao = AppDatabase.getDatabase(context).themeDao()
+    val themeRepository = ThemeRepository(themeDao)
+    val themeViewModelFactory = ThemeViewModelFactory(themeRepository)
+    val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
+
+    var text by remember { mutableStateOf("") }
     val imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val coroutineScope = rememberCoroutineScope()
+
+    val today = LocalDate.now()
+    val currentYear = today.year
+    val currentMonth = today.monthValue
+    val currentDay = today.dayOfMonth
+
+    var selectedDay by remember { mutableStateOf(currentDay) }
+    var selectedMonth by remember { mutableStateOf(currentMonth) }
+
+    val themeListState = themeViewModel.allKeywords.observeAsState(initial = emptyList())
+    var randomKeyword by remember { mutableStateOf<String?>(null) }
+
+    if (themeListState.value.isNotEmpty()) {
+        randomKeyword = themeListState.value.random()
+        Log.d("ThemeListState", "Random Keyword: $randomKeyword")
+    }
+
+    LaunchedEffect(themeListState) {
+        coroutineScope.launch {
+            scheduleViewModel.fetchSchedulesForDate(currentYear, currentMonth, currentDay)
+            val schedules = scheduleViewModel.schedules.value
+            Log.d("Schedules", "Schedules: $schedules")
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-
     ) {
         val titleBoxModifier = Modifier
             .fillMaxWidth()
@@ -338,29 +387,45 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
                 )
             }
         }
-    }
 
-    val coroutineScope = rememberCoroutineScope()
-
-    Button(
-        onClick = {
-            coroutineScope.launch {
-                val diary = Diary(
-                    diarySeq = null,
-                    date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
-                    title = null,
-                    content = text,
-                    url = imageUrl
-                )
-                viewModel.saveDiary(diary)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        val diary = Diary(
+                            diarySeq = null,
+                            date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
+                            title = null,
+                            content = text,
+                            url = imageUrl
+                        )
+                        viewModel.saveDiary(diary)
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(teal40)
+            ) {
+                Text(text = "Diary save")
             }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = ButtonDefaults.buttonColors(teal40)
-    ) {
-        Text(text = "Diary save")
+
+            Button(
+                onClick = {
+                    // Image Create 버튼 클릭 시 동작하는 로직을 구현하세요.
+                    // 이미지 생성 로직을 추가하면 됩니다.
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(teal40)
+            ) {
+                Text(text = "Image Create")
+            }
+        }
     }
 }
 
