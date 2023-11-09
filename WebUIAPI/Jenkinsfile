@@ -18,11 +18,19 @@ pipeline {
             steps {
                 dir('WebUIAPI') {
                     sh '''
-		docker stop freepjt
-		docker rm freepjt
-		docker container run -d -p 8082:8000 --name freepjt freepjt:0.5
-		docker images -f "dangling=true" -q | xargs -r docker rmi
-		'''
+                        # Docker 컨테이너가 존재하는지 확인
+                        if docker ps -a --format "{{.Names}}" | grep -q "^freepjt"; then
+                            # 컨테이너가 존재할 때만 중지 시도
+                            docker stop freepjt
+		   docker rm freepjt
+                        else
+                            # 컨테이너가 존재하지 않으면 메시지 출력
+                            echo "컨테이너 'freepjt'를 찾을 수 없습니다."
+                        fi
+                        
+                        docker container run -d -p 8082:8000 --name freepjt freepjt:0.5
+                        docker images -f "dangling=true" -q | xargs -r docker rmi
+                        '''
                 }
             }
         }
