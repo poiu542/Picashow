@@ -59,7 +59,7 @@ def getList(page: int = Query(default=1)):
 
     total_pages = math.ceil(collection.count_documents({}) / limit)
 
-    last_page_num = math.ceil(total_pages / limit)
+    last_page_num = total_pages
 
     sorted_list = sorted(image_url_list, key=lambda x: len(x['phone_number']), reverse=True)
 
