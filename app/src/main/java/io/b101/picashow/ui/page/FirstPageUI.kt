@@ -110,6 +110,9 @@ suspend fun randomImage(imageListState: MutableState<List<String>>, page: Int) {
 fun DownLoadDialog(imageListState: MutableState<List<String>>) {
     val context = LocalContext.current
     if (showDownloadDialog.value) {
+        var backgroundFlag = true
+        var lockFlag = true
+        var downloadFlag = true
         Dialog(
             onDismissRequest = { showDownloadDialog.value = false },
             properties = DialogProperties(
@@ -151,15 +154,21 @@ fun DownLoadDialog(imageListState: MutableState<List<String>>) {
                             text = "\uD83D\uDCF1  Set as background",
                             color = Color.White,
                             modifier = Modifier.clickable {
-
-                                val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
-                                val inputData = workDataOf("imageUrl" to imageUrl)
-                                val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
-                                    .setInputData(inputData)
-                                    .build()
-                                WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
-                                Toast.makeText(context, "The image has been set as the background.", Toast.LENGTH_SHORT).show()
-                            },
+                                if(backgroundFlag) {
+                                    val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
+                                    val inputData = workDataOf("imageUrl" to imageUrl)
+                                    val changeWallpaperRequest =
+                                        OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
+                                            .setInputData(inputData)
+                                            .build()
+                                    WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
+                                    Toast.makeText(
+                                        context,
+                                        "The image has been set as the background.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    backgroundFlag = false
+                                }},
                         )
 
                         Text(
@@ -167,13 +176,22 @@ fun DownLoadDialog(imageListState: MutableState<List<String>>) {
                             text = "\uD83D\uDD12  Set as lock screen",
                             color = Color.White,
                             modifier = Modifier.clickable {
-                                val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
-                                val inputData = workDataOf("imageUrl" to imageUrl, "isLockScreen" to true)
-                                val changeWallpaperRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
-                                    .setInputData(inputData)
-                                    .build()
-                                WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
-                                Toast.makeText(context, "The image has been set as the lock screen.", Toast.LENGTH_SHORT).show()
+                                if (lockFlag) {
+                                    val imageUrl = selectedImageUrl.value // 변경하려는 이미지의 URL
+                                    val inputData =
+                                        workDataOf("imageUrl" to imageUrl, "isLockScreen" to true)
+                                    val changeWallpaperRequest =
+                                        OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
+                                            .setInputData(inputData)
+                                            .build()
+                                    WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
+                                    Toast.makeText(
+                                        context,
+                                        "The image has been set as the lock screen.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    lockFlag = false
+                                }
                             }
                         )
 
@@ -181,9 +199,20 @@ fun DownLoadDialog(imageListState: MutableState<List<String>>) {
                             fontSize = 20.sp,
                             text = "\uD83D\uDDBC️  Save to my gallery",
                             modifier = Modifier.clickable {
-                                downloadImage(context, selectedImageUrl.value, "Downloading background image", "Downloading images..")
-                                Toast.makeText(context, "The download is in progress.", Toast.LENGTH_SHORT).show()
-                            },
+                                if(downloadFlag) {
+                                    downloadImage(
+                                        context,
+                                        selectedImageUrl.value,
+                                        "Downloading background image",
+                                        "Downloading images.."
+                                    )
+                                    Toast.makeText(
+                                        context,
+                                        "The download is in progress.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    downloadFlag = false
+                                } },
                             color = Color.White
                         )
                     }
