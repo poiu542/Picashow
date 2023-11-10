@@ -32,7 +32,7 @@ class WallpaperChangeWorker(appContext: Context, workerParams: WorkerParameters)
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     val wallpaperManager = WallpaperManager.getInstance(applicationContext)
                     try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isLockScreen) {
+                        if (Build.VERSION.SDK_INT >= 26 && isLockScreen) {
                             wallpaperManager.setBitmap(resource, null, true, WallpaperManager.FLAG_LOCK)
                         } else {
                             wallpaperManager.setBitmap(resource)

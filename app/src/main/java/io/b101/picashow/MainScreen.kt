@@ -153,7 +153,7 @@ fun MainScreen(navController: NavHostController) {
                     BottomNavigationItem(
                         icon = {
                             Image(
-                                painter = painterResource(id = R.drawable.calender),
+                                painter = painterResource(id = R.drawable.paintdiary),
                                 contentDescription = null,
                                 modifier = Modifier.size(30.dp),
                                 colorFilter = if (currentRoute == "firstPage") ColorFilter.tint(
@@ -167,7 +167,7 @@ fun MainScreen(navController: NavHostController) {
                     BottomNavigationItem(
                         icon = {
                             Image(
-                                painter = painterResource(id = R.drawable.today),
+                                painter = painterResource(id = R.drawable.calender),
                                 contentDescription = null,
                                 modifier = Modifier.size(30.dp),
                                 colorFilter = if (currentRoute == "secondPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
@@ -180,7 +180,7 @@ fun MainScreen(navController: NavHostController) {
                     BottomNavigationItem(
                         icon = {
                             Image(
-                                painter = painterResource(id = R.drawable.paintdiary),
+                                painter = painterResource(id = R.drawable.today),
                                 contentDescription = null,
                                 modifier = Modifier.size(30.dp),
                                 colorFilter = if (currentRoute == "thirdPage") ColorFilter.tint(imgPurple) else ColorFilter.tint(
