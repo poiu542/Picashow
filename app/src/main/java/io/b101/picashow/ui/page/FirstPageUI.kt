@@ -72,6 +72,7 @@ var selectedImageUrl=  mutableStateOf("") // 선택된 이미지의 URL
 var selectedImageIndex =  mutableIntStateOf(0) // 선택된 이미지의 인덱스
 var nowPage = mutableIntStateOf(1)
 val imageUrls = mutableStateOf(emptyList<String>())
+val lastPageNum = mutableIntStateOf(1)
 @Composable
 fun firstPage() {
     // 랜더링 이전에 랜덤 사진 요청
@@ -93,6 +94,8 @@ suspend fun randomImage(imageListState: MutableState<List<String>>, page: Int) {
     try {
         val response = ApiObject.ImageService.getAllImages(page)
         val urlList = response.body()?.list
+        if(page == 1) lastPageNum.value = response.body()?.lastPageNum!!
+        Log.d("lastpage", lastPageNum.value.toString())
         // Check if the list is not null and not empty
         if (!urlList.isNullOrEmpty()) {
             val urls = urlList.map { it.url }
@@ -244,10 +247,12 @@ fun Dialog(imageListState: MutableState<List<String>>) {
                     // Observe the current page
                     LaunchedEffect(pagerState.currentPage) {
                         // If the current page is the last page, launch a coroutine to call randomImage function
-                        if (pagerState.currentPage == imageListState.value.size - 1 && (pagerState.currentPage+1)/15+1>nowPage.value) {
+                        if (pagerState.currentPage == imageListState.value.size - 1 && (pagerState.currentPage+1)/15+1>nowPage.value && (pagerState.currentPage+1)/15+1 <= lastPageNum.value) {
                             coroutineScope.launch {
-                                randomImage(imageListState, (pagerState.currentPage+1)/15+1)
+                                Log.d("pagerState.currentPage+1)/15+1",
+                                    ((pagerState.currentPage+1)/15+1).toString())
                                 nowPage.value = ((pagerState.currentPage + 1) / 15 + 1).coerceAtLeast(nowPage.value);
+                                randomImage(imageListState, (pagerState.currentPage+1)/15+1)
                             }
                         }
                     }
@@ -299,9 +304,9 @@ fun ImageListFromUrls(imageListState: MutableState<List<String>>) {
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .collect { lastIndex ->
-                if (lastIndex != null && lastIndex >= imageUrls.value.size/3 - 1 && (imageUrls.value.size/15)+1> nowPage.value) {
+                if (lastIndex != null && lastIndex >= imageUrls.value.size/3 - 1 && (imageUrls.value.size/15)+1> nowPage.value &&  (imageUrls.value.size/15)+1 <= lastPageNum.value) {
                     coroutineScope.launch {
-                        nowPage.value = (imageUrls.value.size/15)+1
+                        nowPage.value = ((imageUrls.value.size/15)+1).coerceAtLeast(nowPage.value)
                         randomImage(imageListState, (imageUrls.value.size/15)+1)
                     }
                 }
