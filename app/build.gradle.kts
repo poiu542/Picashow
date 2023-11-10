@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("com.google.dagger.hilt.android") version "2.44" apply false
 }
 
 android {
@@ -53,6 +54,10 @@ android {
 }
 
 dependencies {
+
+    // Hilt 사용
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
 
     // Composable 내에서 ViewModel 인스턴스를 가져오기
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0-alpha03")
@@ -114,4 +119,9 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+kapt {
+    // Hilt 사용
+    correctErrorTypes = true
 }

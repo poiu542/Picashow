@@ -103,6 +103,8 @@ fun DiaryPage() {
     // 4. ScheduleViewModelFactory를 사용하여 ViewModel 인스턴스를 얻습니다.
     val scheduleViewModel: ScheduleViewModel = viewModel(factory = viewModelFactory)
 
+    Log.d("DiaryPage 호출", "go1")
+
     // 날짜 포맷터
     val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
@@ -215,8 +217,11 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
     val coroutineScope = rememberCoroutineScope()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    Log.d("DiaryPage DiaryText 호출", "go2")
+
     LaunchedEffect(diary.content) {
         editText = diary.content
+        Log.d("DIaryText Lunch", diary.content.toString())
     }
 
     Column(
@@ -357,6 +362,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
         }
     }
 
+    Log.d("DiaryPage TextPlaceHolder 호출", "go2")
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -444,6 +451,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
 
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
+
+    Log.d("DiaryPage DateText 호출", "go2")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -468,6 +477,8 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ShowDatePicker(selectedDate: String) {
+
+    Log.d("DiaryPage 삐카츄 호출", "go2")
         val context = LocalContext.current
 
         Row(
