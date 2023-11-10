@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiObject {
     // 10.25. 미정된 상태
-    private const val BASE_URL = "http://k9b101.p.ssafy.io:8000/"
+    private const val BASE_URL = "http://k9b101.p.ssafy.io:8082/"
 
     private val loggingInterceptor by lazy {
         HttpLoggingInterceptor().apply {
