@@ -28,13 +28,9 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -45,7 +41,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -62,10 +57,6 @@ import io.b101.picashow.WallpaperChangeWorker
 import io.b101.picashow.api.ApiObject
 import kotlinx.coroutines.launch
 
-// 모든 배경 화면 URL 배열
-
-
-// 랜덤 이미지를 추가로 가져오기 위한 변수
 var showBigImage =  mutableStateOf(false) // 이미지 크게 보기 상태 관리
 var showDownloadDialog =  mutableStateOf(false) // 다운로드 다이얼로그 상태 관리
 var selectedImageUrl=  mutableStateOf("") // 선택된 이미지의 URL
@@ -75,39 +66,153 @@ val imageUrls = mutableStateOf(emptyList<String>())
 val lastPageNum = mutableIntStateOf(1)
 @Composable
 fun firstPage() {
-    // 랜더링 이전에 랜덤 사진 요청
+    // 랜더링 이전에 사진 요청
     LaunchedEffect(Unit) {
-        if(nowPage.value==1) randomImage(imageUrls,1)
+        if(nowPage.value==1) getImagesFromS3(1)
     }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 10.dp, end = 10.dp)
     ) {
-        ImageListFromUrls(imageUrls)
-        Dialog(imageUrls);
-        DownLoadDialog(imageUrls);
+        ImageListFromUrls()
+        Dialog();
+        detailDialog();
     }
 }
 
-suspend fun randomImage(imageListState: MutableState<List<String>>, page: Int) {
+suspend fun getImagesFromS3(page: Int) {
     try {
         val response = ApiObject.ImageService.getAllImages(page)
         val urlList = response.body()?.list
         if(page == 1) lastPageNum.value = response.body()?.lastPageNum!!
-        Log.d("lastpage", lastPageNum.value.toString())
-        // Check if the list is not null and not empty
         if (!urlList.isNullOrEmpty()) {
             val urls = urlList.map { it.url }
 
-            imageListState.value = imageListState.value + urls
+            imageUrls.value = imageUrls.value + urls
         }
     } catch (e: Exception) {
-        Log.d("randomImage 오류 발생",e.printStackTrace().toString())
+        Log.d("imageList error",e.printStackTrace().toString())
     }
 }
+
 @Composable
-fun DownLoadDialog(imageListState: MutableState<List<String>>) {
+fun ImageListFromUrls() {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    LazyColumn(state = listState) {
+        items(imageUrls.value.chunked(3)) { chunk ->
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                for (imageUrl in chunk) {
+                    Image(
+                        painter = rememberImagePainter(
+                            data = imageUrl,
+                            builder = {
+                                crossfade(true)
+                            }
+                        ),
+                        contentDescription = "인공지능이 생성한 바탕화면",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size((screenWidth / 3) - 17.dp, ((screenWidth / 2) - 5.dp))
+                            .fillMaxHeight()
+                            .padding(2.5.dp)
+                            .clip(shape = RoundedCornerShape(8.dp))
+                            .clickable {
+                                selectedImageUrl.value = imageUrl
+                                selectedImageIndex.value = imageUrls.value.indexOf(imageUrl)
+                                showBigImage.value = true
+                            }
+                    )
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastIndex ->
+                if (lastIndex != null && lastIndex >= imageUrls.value.size/3 - 1 && (imageUrls.value.size/15)+1> nowPage.value &&  (imageUrls.value.size/15)+1 <= lastPageNum.value) {
+                    coroutineScope.launch {
+                        nowPage.value = ((imageUrls.value.size/15)+1).coerceAtLeast(nowPage.value)
+                        getImagesFromS3( (imageUrls.value.size/15)+1)
+                    }
+                }
+            }
+    }
+}
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+fun Dialog() {
+    val pagerState = rememberPagerState(pageCount = imageUrls.value.size)
+    val coroutineScope = rememberCoroutineScope()
+    if (showBigImage.value) {
+        Dialog(
+            onDismissRequest = {
+                showBigImage.value = false
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false // experimental
+            )
+        ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                ) {
+                    HorizontalPager(state = pagerState) { page ->
+                        Image(
+                            painter = rememberImagePainter(
+                                data = imageUrls.value[page],
+                                builder = { crossfade(true) }
+                            ),
+                            contentDescription = "generated background",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        Box(modifier=Modifier.align(Alignment.BottomCenter)) {
+                            Image(
+                                painter=painterResource(id=R.drawable.download),
+                                contentDescription=null,
+                                modifier= Modifier
+                                    .size(100.dp)
+                                    .padding(bottom = 50.dp)
+                                    .clickable {
+                                        showDownloadDialog.value = true;
+                                        selectedImageUrl.value = imageUrls.value[page];
+                                    }
+
+                            )
+                        }
+                    }
+                    LaunchedEffect(Unit) {
+                        pagerState.scrollToPage(selectedImageIndex.value)
+                    }
+
+                    LaunchedEffect(pagerState.currentPage) {
+                        if (pagerState.currentPage == imageUrls.value.size - 1 && (pagerState.currentPage+1)/15+1>nowPage.value && (pagerState.currentPage+1)/15+1 <= lastPageNum.value) {
+                            coroutineScope.launch {
+                                nowPage.value = ((pagerState.currentPage + 1) / 15 + 1).coerceAtLeast(nowPage.value);
+                                getImagesFromS3((pagerState.currentPage+1)/15+1)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun detailDialog() {
     val context = LocalContext.current
     if (showDownloadDialog.value) {
         var backgroundFlag = true
@@ -222,126 +327,6 @@ fun DownLoadDialog(imageListState: MutableState<List<String>>) {
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
-@Composable
-fun Dialog(imageListState: MutableState<List<String>>) {
-    val pagerState = rememberPagerState(pageCount = imageListState.value.size)
-    val coroutineScope = rememberCoroutineScope()
-
-    if (showBigImage.value) {
-        Dialog(
-            onDismissRequest = {
-                showBigImage.value = false
-            },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false // experimental
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                ) {
-                    HorizontalPager(state = pagerState) { page ->
-                        Image(
-                            painter = rememberImagePainter(
-                                data = imageListState.value[page],
-                                builder = { crossfade(true) }
-                            ),
-                            contentDescription = "인공지능이 생성한 바탕화면",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        Box(modifier=Modifier.align(Alignment.BottomCenter)) {
-                            Image(
-                                painter=painterResource(id=R.drawable.download),
-                                contentDescription=null,
-                                modifier= Modifier
-                                    .size(100.dp)
-                                    .padding(bottom = 50.dp)
-                                    .clickable {
-                                        showDownloadDialog.value = true;
-                                        selectedImageUrl.value = imageListState.value[page];
-                                    }
-
-                            )
-                        }
-                    }
-                    LaunchedEffect(Unit) {
-                        pagerState.scrollToPage(selectedImageIndex.value)
-                    }
-
-                    // Observe the current page
-                    LaunchedEffect(pagerState.currentPage) {
-                        // If the current page is the last page, launch a coroutine to call randomImage function
-                        if (pagerState.currentPage == imageListState.value.size - 1 && (pagerState.currentPage+1)/15+1>nowPage.value && (pagerState.currentPage+1)/15+1 <= lastPageNum.value) {
-                            coroutineScope.launch {
-                                Log.d("pagerState.currentPage+1)/15+1",
-                                    ((pagerState.currentPage+1)/15+1).toString())
-                                nowPage.value = ((pagerState.currentPage + 1) / 15 + 1).coerceAtLeast(nowPage.value);
-                                randomImage(imageListState, (pagerState.currentPage+1)/15+1)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ImageListFromUrls(imageListState: MutableState<List<String>>) {
-    val imageList by imageListState
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
-
-    LazyColumn(state = listState) {
-        items(imageList.chunked(3)) { chunk ->
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                for (imageUrl in chunk) {
-                    Image(
-                        painter = rememberImagePainter(
-                            data = imageUrl,
-                            builder = {
-                                crossfade(true)
-                            }
-                        ),
-                        contentDescription = "인공지능이 생성한 바탕화면",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size((screenWidth / 3) - 17.dp, ((screenWidth / 2) - 5.dp))
-                            .fillMaxHeight()
-                            .padding(2.5.dp)
-                            .clip(shape = RoundedCornerShape(8.dp))
-                            .clickable {
-                                selectedImageUrl.value = imageUrl
-                                selectedImageIndex.value = imageList.indexOf(imageUrl)
-                                showBigImage.value = true
-                            }
-                    )
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastIndex ->
-                if (lastIndex != null && lastIndex >= imageUrls.value.size/3 - 1 && (imageUrls.value.size/15)+1> nowPage.value &&  (imageUrls.value.size/15)+1 <= lastPageNum.value) {
-                    coroutineScope.launch {
-                        nowPage.value = ((imageUrls.value.size/15)+1).coerceAtLeast(nowPage.value)
-                        randomImage(imageListState, (imageUrls.value.size/15)+1)
-                    }
-                }
-            }
-    }
-}
 
 fun downloadImage(context: Context, url: String, title: String, description: String) {
     val request = DownloadManager.Request(Uri.parse(url))
