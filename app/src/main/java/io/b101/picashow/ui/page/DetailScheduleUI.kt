@@ -145,7 +145,6 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                 // 데이터가 로드되었음을 표시
                 isDataLoaded = true
             }
-            themeViewModel
         }
     }
 
