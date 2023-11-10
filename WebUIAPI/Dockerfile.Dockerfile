@@ -9,8 +9,8 @@ WORKDIR /app
 COPY ./app /app
 
 
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
-
+#RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip install -r /app/requirements.txt
 EXPOSE 8000
 
 CMD [ "python", "main.py" ]
