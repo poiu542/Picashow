@@ -87,6 +87,8 @@ fun DiaryPage() {
         factory = diaryViewModelFactory
     )
 
+    Log.d("DiaryPage 호출", "go1")
+
     // 날짜 포맷터
     val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
@@ -118,6 +120,8 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
 
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
 
+    Log.d("DiaryPage ComPo 호출", "go2")
+
     HorizontalPager(state = pagerState) { page ->
         val date = LocalDate.now().plusDays(page.toLong() - 1000000L)
         diaryTitle.value = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
@@ -128,6 +132,8 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
             }
         }
         LaunchedEffect(diaryTitle.value, pagerState.currentPage) {
+        Log.d("pagerState", pagerState.currentPage.toString())
+        Log.d("diaryTitle", diaryTitle.value.toString())
             val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val selectedDate = dateFormatter.parse(diaryTitle.value)
             diaryViewModel.getDiaryByDate(selectedDate.time)
@@ -190,8 +196,11 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
     val coroutineScope = rememberCoroutineScope()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    Log.d("DiaryPage DiaryText 호출", "go2")
+
     LaunchedEffect(diary.content) {
         editText = diary.content
+        Log.d("DIaryText Lunch", diary.content.toString())
     }
 
     Column(
@@ -296,6 +305,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
     val imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    Log.d("DiaryPage TextPlaceHolder 호출", "go2")
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -366,6 +377,8 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
 
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
+
+    Log.d("DiaryPage DateText 호출", "go2")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -390,6 +403,8 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ShowDatePicker(selectedDate: String) {
+
+    Log.d("DiaryPage 삐카츄 호출", "go2")
         val context = LocalContext.current
 
         Row(
