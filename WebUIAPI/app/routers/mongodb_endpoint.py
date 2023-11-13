@@ -51,17 +51,16 @@ def getList(page: int = Query(default=1)):
     page_number = page
     limit = 15
 
-    image_url_list = (collection
-                      .aggregate([
-                        {"$addFields": {"arrayLength": {"$size": "$phone_number"}}},
-                        {"$sort": {"arrayLength": -1}},
-                        {"$skip": (page_number - 1) * limit},
-                        {"$limit": limit},
-                        {"$project": {"arrayLength": 0}}
-                    ]))
-                      # .skip((page_number - 1) * limit)
-                      # .limit(limit))
-                      # .find({}, {'_id': False})
+    image_url_list = (collection.aggregate([
+        {"$addFields": {"arrayLength": {"$size": "$phone_number"}}},
+        {"$sort": {"arrayLength": -1}},
+        {"$skip": (page_number - 1) * limit},
+        {"$limit": limit},
+        {"$project": {"arrayLength": 0}}
+    ]))
+    # .skip((page_number - 1) * limit)
+    # .limit(limit))
+    # .find({}, {'_id': False})
 
     total_pages = math.ceil(collection.count_documents({}) / limit)
 
@@ -79,11 +78,10 @@ def getList(page: int = Query(default=1)):
         data = {'url': i['url']}
         list.append(data)
 
-
     return {'list': list,
-        'limit': limit,
-        'page_number': page_number,
-        'last_page_num': last_page_num}
+            'limit': limit,
+            'page_number': page_number,
+            'last_page_num': last_page_num}
 
 
 @router.get("/list/{theme}")
@@ -96,19 +94,23 @@ def getThemeList(theme: str = Path(), page: int = Query(default=1)):
     page_number = page
     limit = 15
 
-    image_url_list = (collection
-                      .find({'theme': theme}, {'_id': False})
-                      .skip((page_number - 1) * limit)
-                      .limit(limit))
+    image_url_list = (collection.aggregate([
+        {"$addFields": {"arrayLength": {"$size": "$phone_number"}}},
+        {"$match": {"theme": theme}},
+        {"$sort": {"arrayLength": -1}},
+        {"$skip": (page_number - 1) * limit},
+        {"$limit": limit},
+        {"$project": {"arrayLength": 0}}
+    ]))
 
     total_pages = math.ceil(collection.count_documents({}) / limit)
 
     last_page_num = math.ceil(total_pages / limit)
-    sorted_list = sorted(image_url_list, key=lambda x: len(x['phone_number']), reverse=True)
+    # sorted_list = sorted(image_url_list, key=lambda x: len(x['phone_number']), reverse=True)
 
     list = []
 
-    for i in sorted_list:
+    for i in image_url_list:
         data = {'url': i['url']}
         list.append(data)
     return {'list': list,
