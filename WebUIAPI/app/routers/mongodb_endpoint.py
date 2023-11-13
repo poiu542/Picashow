@@ -6,7 +6,7 @@ import app.models.download_img as DownloadImg
 
 import app.main as main
 main.load_dotenv()
-from fastapi import APIRouter, Query, Path, HTTPException
+from fastapi import APIRouter, Query, Path, HTTPException, status
 import math
 
 
@@ -38,7 +38,7 @@ def registUser(download_img : DownloadImg.DownloadImg):
     except Exception as  e:
         print(e)
         return HTTPException(status_code=500, detail="Internal server error")
-    return HTTPException(status_code=200, detail="200 OK")
+    return status.HTTP_200_OK
 
 
 # 배경화면 조회 API
