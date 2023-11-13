@@ -55,6 +55,10 @@ import com.google.accompanist.pager.rememberPagerState
 import io.b101.picashow.R
 import io.b101.picashow.WallpaperChangeWorker
 import io.b101.picashow.api.ApiObject
+import io.b101.picashow.api.image.DownloadItem
+import io.b101.picashow.deviceId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 var showBigImage =  mutableStateOf(false) // 이미지 크게 보기 상태 관리
@@ -317,6 +321,13 @@ fun detailDialog() {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     downloadFlag = false
+                                    val item = DownloadItem(selectedImageUrl.value, deviceId.value)
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        try {ApiObject.ImageService.downloadCountPlus(item)}
+                                        catch (e: Exception) {
+                                            Log.d("imageList error",e.printStackTrace().toString())
+                                        }
+                                    }
                                 } },
                             color = Color.White
                         )
