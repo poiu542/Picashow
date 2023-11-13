@@ -119,9 +119,6 @@ fun AddSchedulePage(navController : NavController) {
         }
     }
 
-    Log.d("이미지 띠미 출력", randomKeyword.value ?: "띠미없음..")
-    Log.d("이미지 띠미 출력2", themeListState.value.toString())
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -386,7 +383,7 @@ fun AddSchedulePage(navController : NavController) {
             if (showDialogTitle) {
                 CustomAlertDialog(
                     title = "Error",
-                    description = "Schedule name cannot be null",
+                    description = "Please write the schedule title",
                     onConfirm = {
                         showDialogTitle = false
                     }
