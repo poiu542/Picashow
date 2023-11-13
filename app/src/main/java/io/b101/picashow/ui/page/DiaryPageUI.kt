@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,10 +53,16 @@ import com.google.accompanist.pager.rememberPagerState
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Diary
 import io.b101.picashow.repository.DiaryRepository
+import io.b101.picashow.repository.ScheduleRepository
+import io.b101.picashow.repository.ThemeRepository
 import io.b101.picashow.ui.theme.Purple40
 import io.b101.picashow.ui.theme.teal40
 import io.b101.picashow.viewmodel.DiaryViewModel
 import io.b101.picashow.viewmodel.DiaryViewModelFactory
+import io.b101.picashow.viewmodel.ScheduleViewModel
+import io.b101.picashow.viewmodel.ScheduleViewModelFactory
+import io.b101.picashow.viewmodel.ThemeViewModel
+import io.b101.picashow.viewmodel.ThemeViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -64,6 +71,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
 
 val inputDateTime = LocalDateTime.now()
 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -86,6 +94,16 @@ fun DiaryPage() {
     val diaryViewModel = viewModel<DiaryViewModel>(
         factory = diaryViewModelFactory
     )
+    Log.d("무한 호출 인가요? = {}", "맞습니다")
+    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
+    // 2. ScheduleDao 인스턴스를 사용하여 ScheduleRepository의 인스턴스를 생성합니다.
+    val repository = ScheduleRepository(scheduleDao)
+    // 3. ScheduleRepository 인스턴스를 사용하여 ScheduleViewModelFactory의 인스턴스를 생성합니다.
+    val viewModelFactory = ScheduleViewModelFactory(repository)
+    // 4. ScheduleViewModelFactory를 사용하여 ViewModel 인스턴스를 얻습니다.
+    val scheduleViewModel: ScheduleViewModel = viewModel(factory = viewModelFactory)
+
+    Log.d("DiaryPage 호출", "go1")
 
     // 날짜 포맷터
     val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -93,14 +111,17 @@ fun DiaryPage() {
     // 사용자가 선택한 날짜를 String으로 가져옴
     val selectedDateStr = diaryTitle.value
 
+
+
     ImageCompo(diaryViewModel = diaryViewModel) // 페이지별로 Image를 그립니다.
 
-    val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
+    val today = LocalDate.now()
+    val initialPage = (today.toEpochDay() - LocalDate.of(2020, 1, 1).toEpochDay()).toInt() + 1000000
+    val pagerState = rememberPagerState(pageCount = 2000000, initialPage = initialPage)
 
     if(diaryDatePickerFlag.value) {ShowDatePicker(diaryTitle.value); diaryDatePickerFlag.value=false}
+
 }
-
-
 
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -109,6 +130,7 @@ fun DiaryPage() {
 fun ImageCompo(diaryViewModel: DiaryViewModel) {
     val diaryList = diaryViewModel.diaryList.value
     var selectedDiary: Diary? = null
+
     val coroutineScope = rememberCoroutineScope()
     if (!diaryList.isNullOrEmpty()) {
         selectedDiary = diaryList[0]
@@ -116,10 +138,12 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
 
     var userChangedTitle = remember { mutableStateOf(false) }
 
-    val pagerState = rememberPagerState(pageCount = 2000000, initialPage = 999999)
+    val today = LocalDate.now()
+    val initialPage = (today.toEpochDay() - LocalDate.now().toEpochDay()).toInt() + 1000000
+    val pagerState = rememberPagerState(pageCount = 2000000, initialPage = initialPage)
 
-    HorizontalPager(state = pagerState) { page ->
-        val date = LocalDate.now().plusDays(page.toLong() - 1000000L)
+    LaunchedEffect(pagerState.currentPage) {
+        val date = LocalDate.now().plusDays(pagerState.currentPage.toLong() - 1000000L)
         diaryTitle.value = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         if(changeCheck.value) {
             coroutineScope.launch {
@@ -127,12 +151,14 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
                 changeCheck.value = false
             }
         }
-        LaunchedEffect(diaryTitle.value, pagerState.currentPage) {
-            val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val selectedDate = dateFormatter.parse(diaryTitle.value)
-            diaryViewModel.getDiaryByDate(selectedDate.time)
-            Log.d("무한 호출인가요? ={}", "yes")
-        }
+        val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val selectedDate = dateFormatter.parse(diaryTitle.value)
+        diaryViewModel.getDiaryByDate(selectedDate.time)
+        Log.d("무한 호출인가요? ={}", "yes")
+    }
+
+    HorizontalPager(state = pagerState) { page ->
+        // 페이지를 그리는 로직은 그대로 유지합니다.
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             content = {
@@ -183,6 +209,7 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
     }
 }
 
+
 @Composable
 fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
     var isEditing by remember { mutableStateOf(false) }
@@ -190,8 +217,11 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
     val coroutineScope = rememberCoroutineScope()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    Log.d("DiaryPage DiaryText 호출", "go2")
+
     LaunchedEffect(diary.content) {
         editText = diary.content
+        Log.d("DIaryText Lunch", diary.content.toString())
     }
 
     Column(
@@ -291,10 +321,48 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
 
 @Composable
 fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
-    var text by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
+    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
+    val scheduleRepository = ScheduleRepository(scheduleDao)
+    val scheduleViewModelFactory = ScheduleViewModelFactory(scheduleRepository)
+    val scheduleViewModel: ScheduleViewModel = viewModel(factory = scheduleViewModelFactory)
+
+    val themeDao = AppDatabase.getDatabase(context).themeDao()
+    val themeRepository = ThemeRepository(themeDao)
+    val themeViewModelFactory = ThemeViewModelFactory(themeRepository)
+    val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
+
+    var text by remember { mutableStateOf("") }
     val imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val coroutineScope = rememberCoroutineScope()
+
+    val selectedDate = LocalDate.parse(diaryTitle.value, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    val selectedYear = selectedDate.year
+    val selectedMonth = selectedDate.monthValue
+    val selectedDay = selectedDate.dayOfMonth
+
+    val themeListState = themeViewModel.allKeywords.observeAsState(initial = emptyList())
+    var randomKeyword by remember { mutableStateOf<String?>(null) }
+
+    if (themeListState.value.isNotEmpty()) {
+        randomKeyword = themeListState.value.random()
+        Log.d("ThemeListState", "Random Keyword: $randomKeyword")
+    }
+
+    Log.d("selectedYear", selectedYear.toString())
+    Log.d("selectedMonth", selectedMonth.toString())
+    Log.d("selectedDay", selectedDay.toString())
+
+    LaunchedEffect(themeListState) {
+        coroutineScope.launch {
+            scheduleViewModel.fetchSchedulesForDate(selectedYear, selectedMonth, selectedDay)
+            val schedules = scheduleViewModel.schedules.value
+            Log.d("Schedules", "Schedules: $schedules")
+        }
+    }
+
+    Log.d("DiaryPage TextPlaceHolder 호출", "go2")
 
     Column(
         modifier = Modifier
@@ -337,35 +405,54 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
                 )
             }
         }
-    }
 
-    val coroutineScope = rememberCoroutineScope()
-
-    Button(
-        onClick = {
-            coroutineScope.launch {
-                val diary = Diary(
-                    diarySeq = null,
-                    date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
-                    title = null,
-                    content = text,
-                    url = imageUrl
-                )
-                viewModel.saveDiary(diary)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        val diary = Diary(
+                            diarySeq = null,
+                            date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
+                            title = null,
+                            content = text,
+                            url = imageUrl
+                        )
+                        viewModel.saveDiary(diary)
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(teal40)
+            ) {
+                Text(text = "Diary save")
             }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = ButtonDefaults.buttonColors(teal40)
-    ) {
-        Text(text = "Diary save")
+
+            Button(
+                onClick = {
+                    // Image Create 버튼 클릭 시 동작하는 로직을 구현하세요.
+                    // 이미지 생성 로직을 추가하면 됩니다.
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(teal40)
+            ) {
+                Text(text = "Image Create")
+            }
+        }
     }
 }
 
 
+
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
+
+    Log.d("DiaryPage DateText 호출", "go2")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -390,6 +477,8 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ShowDatePicker(selectedDate: String) {
+
+    Log.d("DiaryPage 삐카츄 호출", "go2")
         val context = LocalContext.current
 
         Row(
