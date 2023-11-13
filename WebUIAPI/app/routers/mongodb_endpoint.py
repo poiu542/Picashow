@@ -53,7 +53,7 @@ def getList(page: int = Query(default=1)):
 
     image_url_list = (collection.aggregate([
         {"$addFields": {"arrayLength": {"$size": "$phone_number"}}},
-        {"$sort": {"arrayLength": -1}},
+        {"$sort": {"arrayLength": -1, "_id": -1}},
         {"$skip": (page_number - 1) * limit},
         {"$limit": limit},
         {"$project": {"arrayLength": 0}}
@@ -97,7 +97,7 @@ def getThemeList(theme: str = Path(), page: int = Query(default=1)):
     image_url_list = (collection.aggregate([
         {"$addFields": {"arrayLength": {"$size": "$phone_number"}}},
         {"$match": {"theme": theme}},
-        {"$sort": {"arrayLength": -1}},
+        {"$sort": {"arrayLength": -1, "_id": -1}},
         {"$skip": (page_number - 1) * limit},
         {"$limit": limit},
         {"$project": {"arrayLength": 0}}
