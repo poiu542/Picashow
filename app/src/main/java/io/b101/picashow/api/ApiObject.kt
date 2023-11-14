@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiObject {
-    private const val BASE_URL = "http://k9b101.p.ssafy.io:8082/"
+    private const val BASE_URL = "https://k9b101.p.ssafy.io/"
 
     private val loggingInterceptor by lazy {
         HttpLoggingInterceptor().apply {

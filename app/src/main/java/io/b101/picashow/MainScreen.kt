@@ -25,11 +25,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import io.b101.picashow.database.AppDatabase
+import io.b101.picashow.repository.DiaryRepository
+import io.b101.picashow.repository.ThemeRepository
 import io.b101.picashow.ui.components.BottomNavigation
 import io.b101.picashow.ui.components.BottomNavigationItem
 import io.b101.picashow.ui.components.CustomAlertDialog
@@ -40,9 +45,14 @@ import io.b101.picashow.ui.page.DiaryPage
 import io.b101.picashow.ui.page.MainPage
 import io.b101.picashow.ui.theme.MainBackground
 import io.b101.picashow.ui.page.firstPage
+import io.b101.picashow.ui.page.textTutorialDone
 import io.b101.picashow.ui.page.tutorialPage
 import io.b101.picashow.ui.theme.imgMint
 import io.b101.picashow.ui.theme.imgPurple
+import io.b101.picashow.viewmodel.DiaryViewModel
+import io.b101.picashow.viewmodel.DiaryViewModelFactory
+import io.b101.picashow.viewmodel.ThemeViewModel
+import io.b101.picashow.viewmodel.ThemeViewModelFactory
 import io.b101.picashow.viewmodel._myInfo
 import kotlinx.coroutines.CoroutineScope
 
@@ -56,6 +66,15 @@ fun MainScreen(navController: NavHostController) {
     val updatedNavController = rememberUpdatedState(navController)
 
     var showDialogTitle by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val themeDao = AppDatabase.getDatabase(context).themeDao()
+    val themeRepository = ThemeRepository(themeDao)
+    val themeViewModelFactory = ThemeViewModelFactory(themeRepository)
+
+    val themeViewModel = viewModel<ThemeViewModel>(
+        factory = themeViewModelFactory
+    )
 
     // NavController의 back stack entry를 관찰
     val block: suspend CoroutineScope.() -> Unit = {
@@ -68,7 +87,7 @@ fun MainScreen(navController: NavHostController) {
                 else -> "Schedule"
             }
             // addSchedulePage와 detailPage에서는 AppBar와 NavBar를 표시하지 않습니다.
-            showAppBarAndNavBar = destination.route != "addSchedulePage" && destination.route?.contains("detailPage") != true
+            showAppBarAndNavBar = destination.route != "tutorialPage" && destination.route != "addSchedulePage" && destination.route?.contains("detailPage") != true
 
         }
     }
@@ -104,7 +123,9 @@ fun MainScreen(navController: NavHostController) {
                                    contentDescription = "modify",
                                    tint = Color.White,
                                    modifier = Modifier.clickable {
+                                       textTutorialDone.value = true
                                        navController.navigate("tutorialPage")
+                                       themeViewModel.deleteAllThemes()
                                    }
                                )
                            }
@@ -142,7 +163,7 @@ fun MainScreen(navController: NavHostController) {
                     composable("secondPage") { SecondPage(navController) }
                     composable("thirdPage") { ThirdPage() }
                     composable("addSchedulePage") { AddSchedulePage(navController) }
-                    composable("tutorialPage") { tutorialPage() }
+                    composable("tutorialPage") { tutorialPage(navController) }
                     composable("detailPage/{scheduleSeq}") { backStackEntry ->
                         // 여기에서 DetailPage Composable을 호출하고, scheduleSeq 파라미터를 전달합니다.
                         // 라우트에서 파라미터를 추출합니다.
