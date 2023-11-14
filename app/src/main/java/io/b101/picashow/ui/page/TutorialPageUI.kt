@@ -46,6 +46,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Member
@@ -89,16 +91,16 @@ var selectedImageIndices = mutableStateListOf<Int>()
 var textTutorialDone = mutableStateOf(false)
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun tutorialPage() {
+fun tutorialPage(navController : NavController) {
     LaunchedEffect(Unit) {  // 이 키워드는 Composable 내부에서 새로운 코루틴을 시작합니다.
     }
-    if(textTutorialDone.value) mainTutorial()
+    if(textTutorialDone.value) mainTutorial(navController)
     else textTutorial()
 
 }
 
 @Composable
-fun mainTutorial() {
+fun mainTutorial(navController : NavController) {
     val context = LocalContext.current
 
     val themeDao = AppDatabase.getDatabase(context).themeDao()
@@ -133,7 +135,6 @@ fun mainTutorial() {
                 color = Color.White,
                 textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(10.dp))
-            // AnimatedDialog()
             TutorialImageListFromUrls()
         }
 
@@ -145,7 +146,13 @@ fun mainTutorial() {
                 .align(Alignment.BottomCenter)
                 .background(color = Color.Black)
                 .clickable {
-                    if(selectedImageIndices.isEmpty())  Toast.makeText(context, "Please select one or more preferred images.", Toast.LENGTH_SHORT).show()
+                    if (selectedImageIndices.isEmpty()) Toast
+                        .makeText(
+                            context,
+                            "Please select one or more preferred images.",
+                            Toast.LENGTH_SHORT
+                        )
+                        .show()
                     else {
                         tutorialStateCheck.value = true
 
@@ -164,6 +171,7 @@ fun mainTutorial() {
                         memberViewModel.saveMember(member)
                         Log.d("member = {}", _myInfo.value?.isTutorial.toString())
                     }
+                    navController.navigate("secondPage")
                 }
         ) {
             var backgroundColor = if (selectedImageIndices.isEmpty()) Color.Gray else teal40
