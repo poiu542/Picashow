@@ -53,7 +53,5 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
             Log.d("뷰모델에서", _diaryList.toString())
         }
     }
-
-
 }
 

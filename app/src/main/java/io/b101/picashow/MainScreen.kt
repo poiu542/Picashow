@@ -46,7 +46,7 @@ import io.b101.picashow.viewmodel._myInfo
 import kotlinx.coroutines.CoroutineScope
 
 var tutorialStateCheck = mutableStateOf(false)
-var deviceId = mutableStateOf("")
+var deviceId = mutableStateOf("00000000")
 @Composable
 fun MainScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
@@ -90,7 +90,7 @@ fun MainScreen(navController: NavHostController) {
                 )
         ) {
             tutorialStateCheck.value = _myInfo.value?.isTutorial!!
-            deviceId.value =  _myInfo.value?.deviceId!!
+            deviceId.value = _myInfo.value?.deviceId.toString()
             // showAppBarAndNavBar의 값에 따라 TopAppBar 표시
             if (showAppBarAndNavBar && tutorialStateCheck.value) {
 //                val currentRoute = navController.currentDestination?.route

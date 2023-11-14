@@ -81,7 +81,7 @@ val formattedDate: String = inputDateTime.format(formatter)
 var diaryTitle = mutableStateOf(formattedDate)
 var diaryDatePickerFlag = mutableStateOf(false)
 var targetPage = mutableIntStateOf(999999)
-var changeCheck= mutableStateOf(false)
+var changeCheck = mutableStateOf(false)
 
 @Composable
 fun DiaryPage() {
@@ -95,7 +95,7 @@ fun DiaryPage() {
     val diaryViewModel = viewModel<DiaryViewModel>(
         factory = diaryViewModelFactory
     )
-    Log.d("무한 호출 인가요? = {}", "맞습니다")
+    Log.d("다이아리 페이지 시작", "맞습니다")
 //    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
 //    // 2. ScheduleDao 인스턴스를 사용하여 ScheduleRepository의 인스턴스를 생성합니다.
 //    val repository = ScheduleRepository(scheduleDao)
@@ -161,7 +161,7 @@ fun ImageCompo(diaryViewModel: DiaryViewModel) {
         if (selectedDate != null) {
             diaryViewModel.getDiaryByDate(selectedDate.time)
         }
-        Log.d("무한 호출인가요? ={}", "yes")
+        Log.d("무한 호출인가요? ={}", selectedDate.toString())
     }
 
     HorizontalPager(state = pagerState) { page ->
@@ -317,6 +317,19 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
 fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
     val context = LocalContext.current
 
+    val selectedDate = LocalDate.parse(diaryTitle.value, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    val selectedYear = selectedDate.year
+    val selectedMonth = selectedDate.monthValue
+    val selectedDay = selectedDate.dayOfMonth
+
+    Log.d("selectedYear", selectedYear.toString())
+    Log.d("selectedMonth", selectedMonth.toString())
+    Log.d("selectedDay", selectedDay.toString())
+
+    var text by remember { mutableStateOf("") }
+    val imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
+    val coroutineScope = rememberCoroutineScope()
+
     val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
     val scheduleRepository = ScheduleRepository(scheduleDao)
     val scheduleViewModelFactory = ScheduleViewModelFactory(scheduleRepository)
@@ -327,15 +340,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
     val themeViewModelFactory = ThemeViewModelFactory(themeRepository)
     val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
 
-    var text by remember { mutableStateOf("") }
-    val imageUrl = "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png"
-    val coroutineScope = rememberCoroutineScope()
-
-    val selectedDate = LocalDate.parse(diaryTitle.value, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    val selectedYear = selectedDate.year
-    val selectedMonth = selectedDate.monthValue
-    val selectedDay = selectedDate.dayOfMonth
-
     val themeListState = themeViewModel.allKeywords.observeAsState(initial = emptyList())
     var randomKeyword by remember { mutableStateOf<String?>(null) }
 
@@ -343,10 +347,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
         randomKeyword = themeListState.value.random()
         Log.d("ThemeListState", "Random Keyword: $randomKeyword")
     }
-
-    Log.d("selectedYear", selectedYear.toString())
-    Log.d("selectedMonth", selectedMonth.toString())
-    Log.d("selectedDay", selectedDay.toString())
 
     LaunchedEffect(themeListState) {
         coroutineScope.launch {
@@ -453,7 +453,7 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
             .height(40.dp)
             .background(Color.Transparent)
             .padding(4.dp)
-            .clickable( onClick = onDateTextClicked), // Box를 클릭 가능하게 만듭니다.
+            .clickable(onClick = onDateTextClicked), // Box를 클릭 가능하게 만듭니다.
         contentAlignment = Alignment.Center
     ) {
 
@@ -473,22 +473,23 @@ fun ShowDatePicker(context: Context) {
 
     Log.d("DiaryPage 삐카츄 호출", "go2")
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val calendar: Calendar = Calendar.getInstance()
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
-            val month = calendar.get(Calendar.MONTH)
-            val year = calendar.get(Calendar.YEAR)
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val calendar: Calendar = Calendar.getInstance()
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val month = calendar.get(Calendar.MONTH)
+        val year = calendar.get(Calendar.YEAR)
 
-            DatePickerDialog(context, { _, mYear, mMonth, mDay ->
-                val newSelectedDate = LocalDate.of(mYear, mMonth + 1, mDay)
-                diaryTitle.value =
-                    newSelectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                //TODO : 이거 수정 해야 됨
-                 targetPage.intValue = (newSelectedDate.toEpochDay() - LocalDate.now()
-                    .toEpochDay()).toInt() + 999999
-                changeCheck.value = true
-            }, year, month, day).show()
-        }
+        DatePickerDialog(context, { _, mYear, mMonth, mDay ->
+            val newSelectedDate = LocalDate.of(mYear, mMonth + 1, mDay)
+            Log.d("삐카츄 선택 날짜", newSelectedDate.toString())
+            diaryTitle.value =
+                newSelectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            //TODO : 이거 수정 해야 됨
+            targetPage.intValue = (newSelectedDate.toEpochDay() - LocalDate.now()
+                .toEpochDay()).toInt() + 999999
+            changeCheck.value = true
+        }, year, month, day).show()
     }
+}
