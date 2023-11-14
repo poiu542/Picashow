@@ -3,9 +3,11 @@ package io.b101.picashow.ui.page
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -68,6 +70,7 @@ var selectedImageIndex =  mutableIntStateOf(0) // 선택된 이미지의 인덱�
 var nowPage = mutableIntStateOf(1)
 val imageUrls = mutableStateOf(emptyList<String>())
 val lastPageNum = mutableIntStateOf(1)
+
 @Composable
 fun firstPage() {
     // 랜더링 이전에 사진 요청
@@ -312,7 +315,7 @@ fun detailDialog() {
                                     downloadImage(
                                         context,
                                         selectedImageUrl.value,
-                                        "Downloading background image",
+                                        "Downloading background image.png",
                                         "Downloading images.."
                                     )
                                     Toast.makeText(
