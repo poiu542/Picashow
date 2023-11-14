@@ -68,12 +68,12 @@ var tutorialImageUrls = mutableListOf(
     arrayOf(
         "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-2639669529690009063.png",
         "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-5238680096499836867.png",
-        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-4610657644614568213.png",
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8202399536769759256.png",
         "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/-4608192120304862152.png",
         "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/3560503986219592235.png",
         "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/4517837980666991645.png",
         "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8406365908455495805.png",
-        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/8587172660287848677.png"
+        "https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5420116415619768453.png"
      ),
     arrayOf(
         "realistic",
@@ -83,7 +83,7 @@ var tutorialImageUrls = mutableListOf(
         "van gosh",
         "picasso",
         "europe",
-        "animation"
+        "SF"
     )
 )
 
@@ -267,36 +267,58 @@ fun TutorialImageListFromUrls() {
                 for (j in i until minOf(i + 2, tutorialImageUrls[0].size)) {
                     val imageUrl = tutorialImageUrls[0][j]
                     val isSelected = j in selectedImageIndices
-                    Image(
-                        contentScale = ContentScale.Crop,
-                        painter = rememberImagePainter(
-                            data = imageUrl,
-                            builder = {
-                                crossfade(true)
-//                              placeholder(R.drawable.waiting_image)
-                            }
-                        ),
-                        contentDescription = "인공지능이 생성한 바탕화면",
+                    Column(
                         modifier = Modifier
-                            .size((screenWidth / 2) - 30.dp, ((screenWidth / 2) + 60.dp))
-                            .fillMaxHeight()
-                            .padding(5.dp)
+                            .padding(4.dp)
                             .clip(shape = RoundedCornerShape(5.dp))
-                            .clickable {
-                                if (isSelected) {
-                                    selectedImageIndices.remove(j)
-                                    // 이미 선택된 이미지라면 제거
-                                } else {
-                                    selectedImageIndices.add(j)
-                                    // 선택되지 않은 이미지라면 추가
-                                }
-                            }
                             .border(
                                 width = (4).dp,
                                 color = if (isSelected) teal40 else Color.Transparent,
                                 shape = RoundedCornerShape(8.dp)
-                            )
-                    )
+                            ),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+
+
+                    ) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Text(
+                            text = tutorialImageUrls[1][j],
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Image(
+                            contentScale = ContentScale.Crop,
+                            painter = rememberImagePainter(
+                                data = imageUrl,
+                                builder = {
+                                    crossfade(true)
+//                              placeholder(R.drawable.waiting_image)
+                                }
+                            ),
+                            contentDescription = "인공지능이 생성한 바탕화면",
+                            modifier = Modifier
+                                .size((screenWidth / 2) - 30.dp, ((screenWidth / 2) + 60.dp))
+                                .fillMaxHeight()
+                                .padding(5.dp)
+                                .clip(shape = RoundedCornerShape(5.dp))
+                                .clickable {
+                                    if (isSelected) {
+                                        selectedImageIndices.remove(j)
+                                        // 이미 선택된 이미지라면 제거
+                                    } else {
+                                        selectedImageIndices.add(j)
+                                        // 선택되지 않은 이미지라면 추가
+                                    }
+                                }
+//                                .border(
+//                                    width = (4).dp,
+//                                    color = if (isSelected) teal40 else Color.Transparent,
+//                                    shape = RoundedCornerShape(8.dp)
+//                                )
+                        )
+                    }
                 }
             }
         }
