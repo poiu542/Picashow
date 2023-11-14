@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun TopAppBar(
+    startContent: @Composable (Modifier) -> Unit,
     title: String,
     showIcon: Boolean,
     endContent: @Composable (Modifier) -> Unit // endContent는 @Composable 람다식으로 받습니다.
@@ -36,11 +37,7 @@ fun TopAppBar(
         verticalAlignment = Alignment.CenterVertically // Row 내의 모든 요소를 세로 중앙 정렬합니다.
     ) {
         if (showIcon) {
-            Icon(
-                Icons.Default.AccountCircle,
-                contentDescription = "modify",
-                tint = Color.White
-            )
+            startContent(Modifier)
         } else {
             Box {}
         }

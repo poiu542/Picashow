@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -95,6 +96,20 @@ fun MainScreen(navController: NavHostController) {
             if (showAppBarAndNavBar && tutorialStateCheck.value) {
 //                val currentRoute = navController.currentDestination?.route
                 TopAppBar(
+                    startContent = {
+                       when(currentRoute) {
+                           "secondPage" -> {
+                               Icon(
+                                   Icons.Default.AccountCircle,
+                                   contentDescription = "modify",
+                                   tint = Color.White,
+                                   modifier = Modifier.clickable {
+                                       navController.navigate("tutorialPage")
+                                   }
+                               )
+                           }
+                       }
+                    },
                     title = title,
                     showIcon = currentRoute == "secondPage", // secondPage 일 때만 showIcon을 true로 설정
                     endContent = {
