@@ -13,22 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-//class BottomNavigation {
-//}
 data class BottomNavigationItem(
     val icon: @Composable () -> Unit,
     val selected: Boolean,
     val onClick: () -> Unit
 )
 
-
-
 @Composable
 fun BottomNavigation(modifier: Modifier = Modifier, items: List<BottomNavigationItem>) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(top = 5.dp, bottom = 5.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         items.forEach { item ->
