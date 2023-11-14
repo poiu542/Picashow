@@ -14,24 +14,29 @@ import java.util.Date
 
 class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
 
-    private val _myInfo = MutableLiveData<Diary?>()
-    val myInfo: LiveData<Diary?> get() = _myInfo
+    private val _myDiary = MutableLiveData<Diary?>()
+    val myDiary: LiveData<Diary?> get() = _myDiary
     private val _diaryList = MutableLiveData<List<Diary>>()
     val diaryList: LiveData<List<Diary>> get() = _diaryList
 
     // Diary를 저장하는 함수
-    suspend fun saveDiary(diary: Diary) {
-        // Diary를 저장하고 저장된 Diary 객체를 _myInfo LiveData에 할당
-        val savedDiary = repository.insert(diary)
-        _myInfo.value = diary
+    fun saveDiary(diary: Diary): LiveData<Long> {
+        val result = MutableLiveData<Long>()
+        viewModelScope.launch {
+            // Diary를 저장하고 저장된 Diary 객체를 _myDiary LiveData에 할당
+            val savedDiary = repository.insert(diary)
+            result.postValue(savedDiary)
+            _myDiary.value = diary
+        }
+        return result
     }
 
     // Diary를 업데이트하는 함수
     fun updateDiary(diary: Diary) {
         viewModelScope.launch {
-            // Diary를 업데이트하고 업데이트된 Diary 객체를 _myInfo LiveData에 할당
+            // Diary를 업데이트하고 업데이트된 Diary 객체를 _myDiary LiveData에 할당
             val updatedDiary = repository.update(diary)
-            _myInfo.value = diary
+            _myDiary.value = diary
         }
     }
 
@@ -40,7 +45,7 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
         viewModelScope.launch {
             // Diary를 삭제하고 LiveData를 null로 설정
             repository.delete(diary)
-            _myInfo.value = null
+            _myDiary.value = null
         }
     }
 

@@ -3,7 +3,9 @@ package io.b101.picashow.ui.page
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,20 +54,28 @@ import coil.compose.rememberImagePainter
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import io.b101.picashow.UpdateImageService
+import io.b101.picashow.api.ApiObject
+import io.b101.picashow.api.image.CreateImageRequest
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Diary
 import io.b101.picashow.repository.DiaryRepository
 import io.b101.picashow.repository.ScheduleRepository
 import io.b101.picashow.repository.ThemeRepository
+import io.b101.picashow.scheduleWallpaperChange
 import io.b101.picashow.ui.theme.Purple40
 import io.b101.picashow.ui.theme.teal40
+import io.b101.picashow.util.await
 import io.b101.picashow.viewmodel.DiaryViewModel
 import io.b101.picashow.viewmodel.DiaryViewModelFactory
 import io.b101.picashow.viewmodel.ScheduleViewModel
 import io.b101.picashow.viewmodel.ScheduleViewModelFactory
 import io.b101.picashow.viewmodel.ThemeViewModel
 import io.b101.picashow.viewmodel.ThemeViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -317,15 +327,10 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
     Log.d("selectedYear", selectedYear.toString())
     Log.d("selectedMonth", selectedMonth.toString())
     Log.d("selectedDay", selectedDay.toString())
+    Log.d("selectedDate", selectedDate.toString())
 
     var text by remember { mutableStateOf("") }
     val imageUrl by remember { mutableStateOf("https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png") }
-    val coroutineScope = rememberCoroutineScope()
-
-    val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
-    val scheduleRepository = ScheduleRepository(scheduleDao)
-    val scheduleViewModelFactory = ScheduleViewModelFactory(scheduleRepository)
-    val scheduleViewModel: ScheduleViewModel = viewModel(factory = scheduleViewModelFactory)
 
     val themeDao = AppDatabase.getDatabase(context).themeDao()
     val themeRepository = ThemeRepository(themeDao)
@@ -339,16 +344,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
         randomKeyword = themeListState.value.random()
         Log.d("ThemeListState", "Random Keyword: $randomKeyword")
     }
-
-    LaunchedEffect(themeListState) {
-        coroutineScope.launch {
-            scheduleViewModel.fetchSchedulesForDate(selectedYear, selectedMonth, selectedDay)
-            val schedules = scheduleViewModel.schedules.value
-            Log.d("Schedules", "Schedules: $schedules")
-        }
-    }
-
-    Log.d("DiaryPage TextPlaceHolder 호출", "go2")
 
     Column(
         modifier = Modifier
@@ -398,16 +393,39 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
         ) {
             Button(
                 onClick = {
-                    coroutineScope.launch {
-                        val diary = Diary(
-                            diarySeq = null,
-                            date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
-                            title = null,
-                            content = text,
-                            url = imageUrl
-                        )
-                        viewModel.saveDiary(diary)
+                    val diary = Diary(
+                        diarySeq = null,
+                        date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(diaryTitle.value),
+                        title = null,
+                        content = text,
+                        url = "android.resource://io.b101.picashow/drawable/null_image"
+                    )
+
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // 일정 추가
+                        withContext(Dispatchers.IO) {
+                            val diarySeq = viewModel.saveDiary(diary).await()
+                            try {
+                                val response = ApiObject.ImageService.createImage(CreateImageRequest(text, randomKeyword!!))
+                                if (response.isSuccessful) {
+                                    // 성공적으로 URL을 받아옵니다.
+                                    val responseImageUrl = response.body().toString()
+                                    // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
+                                    val intent = Intent(context, UpdateImageService::class.java).apply {
+                                        putExtra("scheduleSeq", diarySeq.toString())
+                                        putExtra("newImgUrl", responseImageUrl)
+                                        putExtra("kind", "diaryPage")
+                                    }
+                                    context.startService(intent)
+                                } else {
+                                    Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("ERROR", "이미지 생성 예외 발생", e)
+                            }
+                        }
                     }
+                    Toast.makeText(context, "diary has been added", Toast.LENGTH_LONG).show()
                 },
                 modifier = Modifier
                     .weight(1f)

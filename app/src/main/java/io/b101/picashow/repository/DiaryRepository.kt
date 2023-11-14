@@ -1,5 +1,6 @@
 package io.b101.picashow.repository
 
+import android.util.Log
 import androidx.annotation.WorkerThread
 import io.b101.picashow.dao.DiaryDao
 import io.b101.picashow.entity.Diary
@@ -8,10 +9,9 @@ import java.util.Date
 
 class DiaryRepository(private val diaryDao: DiaryDao) {
     val allDiarys: Flow<List<Diary>> = diaryDao.getAll()
-    @Suppress("RedundantSuspendModifier")
     @WorkerThread
-    suspend fun insert(diary: Diary) {
-        diaryDao.insert(diary)
+    suspend fun insert(diary: Diary) : Long {
+        return diaryDao.insert(diary)
     }
 
     @Suppress("RedundantSuspendModifier")
@@ -31,5 +31,11 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
         return diaryDao.getDiaryByDate(selectedDate)
     }
 
+    @WorkerThread
+    suspend fun updateDiaryImgUrl(diarySeq: String, newImgUrl: String) {
+        Log.e("다이어리 레포지토리 시크", diarySeq)
+        Log.e("다이어리 레포지토리 이미지", newImgUrl)
+        diaryDao.updateImageUrl(diarySeq, newImgUrl)
+    }
 
 }

@@ -19,14 +19,20 @@ class UpdateImageService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val scheduleSeq = intent?.getStringExtra("scheduleSeq")
+        val seq = intent?.getStringExtra("scheduleSeq")
         val newImgUrl = intent?.getStringExtra("newImgUrl")
-        Log.d("UpdateImageService", "onStartCommand: scheduleSeq=$scheduleSeq, newImgUrl=$newImgUrl")
+        val kind = intent?.getStringExtra("kind")
 
-        if (scheduleSeq != null && newImgUrl != null) {
+        Log.d("UpdateImageService", "onStartCommand: seq=$seq, newImgUrl=$newImgUrl, kind = $kind")
+
+        if (seq != null && newImgUrl != null) {
             serviceScope.launch {
                 try {
-                    updateScheduleImgUrl(scheduleSeq, newImgUrl)
+                    if(kind.equals("schedulePage")) {
+                        updateScheduleImgUrl(seq, newImgUrl)
+                    } else if(kind.equals("diaryPage")) {
+                        updateDiaryImgUrl(seq, newImgUrl)
+                    }
                 } catch (e: Exception) {
                     Log.e("UpdateImageService", "Exception in updateScheduleImgUrl", e)
                 }
@@ -45,6 +51,17 @@ class UpdateImageService : Service() {
         val scheduleRepository = app.scheduleRepository
         // Repository의 함수를 호출하여 이미지 URL을 업데이트합니다.
         scheduleRepository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
+        Log.d("UpdateImageService", "Image URL updated")
+    }
+
+    private suspend fun updateDiaryImgUrl(diarySeq: String, newImgUrl: String) {
+        Log.d("UpdateImageService", "Updating image URL...")
+        // Application 인스턴스를 가져옵니다.
+        val app = applicationContext as PicaShowApp
+        // Repository에 접근합니다.
+        val diaryRepository = app.diaryRepository
+        // Repository의 함수를 호출하여 이미지 URL을 업데이트합니다.
+        diaryRepository.updateDiaryImgUrl(diarySeq, newImgUrl)
         Log.d("UpdateImageService", "Image URL updated")
     }
 

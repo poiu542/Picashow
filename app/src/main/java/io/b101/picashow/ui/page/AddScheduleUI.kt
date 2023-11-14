@@ -352,10 +352,10 @@ fun AddSchedulePage(navController : NavController) {
                                     val imageUrl = response.body().toString()
                                     // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
                                     Log.e("Seq", scheduleSeq.toString())
-//                                    scheduleViewModel.updateScheduleImgUrl(scheduleSeq.toString(), imageUrl)
                                     val intent = Intent(context, UpdateImageService::class.java).apply {
                                         putExtra("scheduleSeq", scheduleSeq.toString())
                                         putExtra("newImgUrl", imageUrl)
+                                        putExtra("kind", "schedulePage")
                                     }
                                     context.startService(intent)
                                     scheduleWallpaperChange(context, startDate, imageUrl)
