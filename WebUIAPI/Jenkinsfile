@@ -9,7 +9,7 @@ pipeline {
                     script {
                         sh 'cd /var/jenkins_home/workspace/backend-fastAPI/WebUIAPI'
                         sh 'ls'
-                        sh 'docker build -t freepjt:0.5 -f Dockerfile.Dockerfile .'
+                        sh 'docker build -t freepjt:1.0 -f Dockerfile.Dockerfile .'
                     }
                 }
             }
@@ -28,7 +28,7 @@ pipeline {
                             echo "컨테이너 'freepjt'를 찾을 수 없습니다."
                         fi
                         
-                        docker container run -d -p 8082:8000 --name freepjt freepjt:0.5
+                        docker container run -d -p 127.0.0.1:8081:8000 --name freepjt freepjt:1.0
                         '''
                 }
             }
