@@ -21,7 +21,7 @@ interface ScheduleDao: BaseDao<Schedule> {
     fun getSchedulesForDate(startTimestamp: Long, endTimestamp: Long): Flow<List<Schedule>>
 
     @Query("SELECT * FROM schedule WHERE scheduleSeq = :scheduleSeq")
-    fun getScheduleById(scheduleSeq: String): Schedule?
+    fun getScheduleById(scheduleSeq: String): Flow<Schedule?>
 
     @Update
     override suspend fun update(schedule: Schedule)

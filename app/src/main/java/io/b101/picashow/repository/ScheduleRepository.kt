@@ -32,7 +32,7 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
         return scheduleDao.getSchedulesForDate(startTimestamp, endTimestamp)
     }
 
-    fun getScheduleById(id: String): Schedule? {
+    fun getScheduleById(id: String): Flow<Schedule?> {
         return scheduleDao.getScheduleById(id)
     }
 

@@ -97,7 +97,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
     var randomKeywordState = remember { mutableStateOf(false) }
 
     // 시간 선택기 상태를 관리할 MutableState를 정의
-    var showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
+    val showingTimePicker = remember { mutableStateOf<TimePickerType?>(null) }
 
     // 이전에 데이터를 로드했는지 여부를 추적하는 변수
     var isDataLoaded by remember { mutableStateOf(false) }
@@ -113,38 +113,35 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
 
     LaunchedEffect(scheduleSeq) {
-        if (!isDataLoaded) {
-            // 랜덤한 keyWord를 선택
+        // 랜덤한 keyWord를 선택
+        scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
+            // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
+            // 예를 들면:
+            scheduleDetails?.let {
+                scheduleName.value = it.scheduleName ?: ""
+                content.value = it.content ?: ""
+                imageURL.value = it.wallpaperUrl ?: ""
 
-            scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
-                // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
-                // 예를 들면:
-                scheduleDetails?.let {
-                    scheduleName.value = it.scheduleName ?: ""
-                    content.value = it.content ?: ""
-                    imageURL.value = it.wallpaperUrl ?: ""
-
-                    // 날짜 및 시간 설정
-                    it.startDate?.let { startDate ->
-                        // Date 객체를 LocalDateTime으로 변환
-                        val startDateTime = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
-                        selectedStartDate.value = startDateTime
-                        selectedStartHour.value = startDateTime.hour
-                        selectedStartMinute.value = startDateTime.minute
-                    }
-
-                    it.endDate?.let { endDate ->
-                        // Date 객체를 LocalDateTime으로 변환
-                        val endDateTime = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
-                        selectedEndDate.value = endDateTime
-                        selectedEndHour.value = endDateTime.hour
-                        selectedEndMinute.value = endDateTime.minute
-                    }
+                // 날짜 및 시간 설정
+                it.startDate?.let { startDate ->
+                    // Date 객체를 LocalDateTime으로 변환
+                    val startDateTime = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
+                    selectedStartDate.value = startDateTime
+                    selectedStartHour.value = startDateTime.hour
+                    selectedStartMinute.value = startDateTime.minute
                 }
 
-                // 데이터가 로드되었음을 표시
-                isDataLoaded = true
+                it.endDate?.let { endDate ->
+                    // Date 객체를 LocalDateTime으로 변환
+                    val endDateTime = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
+                    selectedEndDate.value = endDateTime
+                    selectedEndHour.value = endDateTime.hour
+                    selectedEndMinute.value = endDateTime.minute
+                }
             }
+
+            // 데이터가 로드되었음을 표시
+            isDataLoaded = true
         }
     }
 
@@ -423,6 +420,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                                     context.startService(intent)
                                     scheduleWallpaperChange(context, startDate, imageUrl)
                                 } else {
+                                    Toast.makeText(context, "Failed to generate image", Toast.LENGTH_LONG).show()
                                     Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
                                 }
                             } catch (e: Exception) {

@@ -360,6 +360,7 @@ fun AddSchedulePage(navController : NavController) {
                                     context.startService(intent)
                                     scheduleWallpaperChange(context, startDate, imageUrl)
                                 } else {
+                                    Toast.makeText(context, "Failed to generate image", Toast.LENGTH_LONG).show()
                                     Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
                                 }
                             } catch (e: Exception) {

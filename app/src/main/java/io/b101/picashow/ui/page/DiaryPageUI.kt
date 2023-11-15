@@ -317,16 +317,6 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
 fun TextPlaceHolder(viewModel: DiaryViewModel) {
     val context = LocalContext.current
 
-    val selectedDate = LocalDate.parse(diaryTitle.value, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    val selectedYear = selectedDate.year
-    val selectedMonth = selectedDate.monthValue
-    val selectedDay = selectedDate.dayOfMonth
-
-    Log.d("selectedYear", selectedYear.toString())
-    Log.d("selectedMonth", selectedMonth.toString())
-    Log.d("selectedDay", selectedDay.toString())
-    Log.d("selectedDate", selectedDate.toString())
-
     var text by remember { mutableStateOf("") }
     val imageUrl by remember { mutableStateOf("https://comercial-wallpaper.s3.ap-northeast-2.amazonaws.com/images/5089873592208240427.png") }
 
@@ -416,6 +406,7 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
                                     }
                                     context.startService(intent)
                                 } else {
+                                    Toast.makeText(context, "Failed to generate image", Toast.LENGTH_LONG).show()
                                     Log.e("ERROR", "이미지 생성 오류: ${response.errorBody()?.string()}")
                                 }
                             } catch (e: Exception) {

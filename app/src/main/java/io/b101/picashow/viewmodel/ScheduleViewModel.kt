@@ -11,6 +11,7 @@ import io.b101.picashow.entity.Schedule
 import io.b101.picashow.repository.DiaryRepository
 import io.b101.picashow.repository.ScheduleRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -41,19 +42,21 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
     }
 
     fun getScheduleById(id: String, onScheduleLoaded: (Schedule?) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            // 백그라운드 스레드에서 데이터베이스 작업을 실행
-            val schedule = repository.getScheduleById(id)
-            withContext(Dispatchers.Main) {
-                // UI 스레드에서 UI 상태를 업데이트
-                onScheduleLoaded(schedule)
-            }
+        viewModelScope.launch {
+            repository.getScheduleById(id)
+                .collect { schedule ->
+                    // collect는 백그라운드 스레드에서 실행됩니다.
+                    // UI 스레드에서 콜백을 호출하기 위해 withContext를 사용합니다.
+                    withContext(Dispatchers.Main) {
+                        onScheduleLoaded(schedule)
+                    }
+                }
         }
     }
 
     fun updateSchedule(scheduleSeq: String, updatedScheduleData: Schedule) {
         viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
-            val existingSchedule = repository.getScheduleById(scheduleSeq)
+            val existingSchedule = repository.getScheduleById(scheduleSeq).firstOrNull()
             existingSchedule?.let { schedule ->
                 // 업데이트할 속성 설정
                 schedule.scheduleName = updatedScheduleData.scheduleName
@@ -70,10 +73,5 @@ class ScheduleViewModel(private val repository: ScheduleRepository) : ViewModel(
         }
     }
 
-    fun updateScheduleImgUrl(scheduleSeq: String, newImgUrl: String) {
-        viewModelScope.launch(Dispatchers.IO) { // 백그라운드 스레드에서 실행
-            repository.updateScheduleImgUrl(scheduleSeq, newImgUrl)
-        }
-    }
 
 }

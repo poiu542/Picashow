@@ -33,8 +33,6 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
 
     @WorkerThread
     suspend fun updateDiaryImgUrl(diarySeq: String, newImgUrl: String) {
-        Log.e("다이어리 레포지토리 시크", diarySeq)
-        Log.e("다이어리 레포지토리 이미지", newImgUrl)
         diaryDao.updateImageUrl(diarySeq, newImgUrl)
     }
 
