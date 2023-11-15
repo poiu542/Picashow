@@ -125,4 +125,4 @@ def sendAPItoDallE3(requestBody: ImagePrompt.ImagePrompt):
         return JSONResponse(content=image_url, status_code=200)
     except Exception as e:
         logging.warning(e)
-        return HTTPException(status_code=503, detail="Failed to generate image")
+        raise HTTPException(status_code=503, detail="Failed to generate image")
