@@ -7,8 +7,8 @@ import app.s3.s3Service as s3
 import app.models.image_prompt as ImagePrompt
 import app.main as main
 import os
+import logging
 import openai
-from openai import OpenAI
 from fastapi import APIRouter, HTTPException
 from urllib import request
 
@@ -21,6 +21,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # create API client with custom host, port
 WEB_UI_API = webuiapi.WebUIApi(host='127.0.0.1', port=7860)
 
+logging.basicConfig(level=logging.DEBUG)
 
 def get_value_from_key(theme_list, key):
     for dictionary in theme_list:
@@ -105,16 +106,22 @@ def sendAPItoDallE3(requestBody: ImagePrompt.ImagePrompt):
 
     input = requestBody.input_text + "라는 주제를 " + theme + " 느낌으로 생성해줘"
 
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt=input,
-        size="1024x1024",
-        quality="standard",
-        n=1,
-    )
+    logging.info(input)
 
-    res = request.urlopen(response.data[0].url).read()
-    image_bytes = BytesIO(res)
-    image_url = s3.upload(image_bytes, s3.connection(), theme)
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=input,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
 
-    return image_url
+        res = request.urlopen(response.data[0].url).read()
+        image_bytes = BytesIO(res)
+        image_url = s3.upload(image_bytes, s3.connection(), theme)
+
+        return HTTPException(status_code=200, detail=image_url)
+    except Exception as e:
+        logging.warning(e)
+        return HTTPException(status_code=503, detail="Failed to generate image")
