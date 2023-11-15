@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-
 class UpdateImageService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO)

@@ -1,22 +1,19 @@
 package io.b101.picashow
 
 import android.content.Context
-import android.util.Log
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
 fun scheduleWallpaperChange(context: Context, startDate: Date, imageUrl: String) {
     val triggerTime = startDate.time - TimeUnit.MINUTES.toMillis(10)  // 10분 전 시간
     val delayMillis = triggerTime - System.currentTimeMillis()  // 현재로부터의 지연 시간
+    val data = workDataOf("imageUrl" to imageUrl)  // imageUrl 데이터 설정
 
     if (delayMillis > 0) {  // 설정한 시간의 10분 전이 아직 오지 않았다면
-        val data = workDataOf("imageUrl" to imageUrl)  // imageUrl 데이터 설정
-
         val workRequest = OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
             .setInputData(data)
             .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
@@ -27,5 +24,11 @@ fun scheduleWallpaperChange(context: Context, startDate: Date, imageUrl: String)
             "wallpaperChangeScheduled$startDate",
             ExistingWorkPolicy.REPLACE,
             workRequest)
+    } else {
+        val changeWallpaperRequest =
+            OneTimeWorkRequestBuilder<WallpaperChangeWorker>()
+                .setInputData(data)
+                .build()
+        WorkManager.getInstance(context).enqueue(changeWallpaperRequest)
     }
 }

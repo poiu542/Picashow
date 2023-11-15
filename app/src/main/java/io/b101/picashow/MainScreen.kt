@@ -1,5 +1,6 @@
 package io.b101.picashow
 
+//import io.b101.picashow.ui.page.AddSchedulePage
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,24 +34,20 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.b101.picashow.database.AppDatabase
-import io.b101.picashow.repository.DiaryRepository
 import io.b101.picashow.repository.ThemeRepository
 import io.b101.picashow.ui.components.BottomNavigation
 import io.b101.picashow.ui.components.BottomNavigationItem
 import io.b101.picashow.ui.components.CustomAlertDialog
 import io.b101.picashow.ui.components.TopAppBar
-import io.b101.picashow.ui.page.AddSchedulePage
 import io.b101.picashow.ui.page.DetailScheduleUI
 import io.b101.picashow.ui.page.DiaryPage
 import io.b101.picashow.ui.page.MainPage
-import io.b101.picashow.ui.theme.MainBackground
 import io.b101.picashow.ui.page.firstPage
 import io.b101.picashow.ui.page.textTutorialDone
 import io.b101.picashow.ui.page.tutorialPage
+import io.b101.picashow.ui.theme.MainBackground
 import io.b101.picashow.ui.theme.imgMint
 import io.b101.picashow.ui.theme.imgPurple
-import io.b101.picashow.viewmodel.DiaryViewModel
-import io.b101.picashow.viewmodel.DiaryViewModelFactory
 import io.b101.picashow.viewmodel.ThemeViewModel
 import io.b101.picashow.viewmodel.ThemeViewModelFactory
 import io.b101.picashow.viewmodel._myInfo
@@ -161,7 +158,8 @@ fun MainScreen(navController: NavHostController) {
                     composable("firstPage") { FirstPage() }
                     composable("secondPage") { SecondPage(navController) }
                     composable("thirdPage") { ThirdPage() }
-                    composable("addSchedulePage") { AddSchedulePage(navController) }
+                    composable("addSchedulePage") { DetailScheduleUI(scheduleSeq = "0", navController = navController) }
+//                    composable("addSchedulePage") { AddSchedulePage(navController) }
                     composable("tutorialPage") { tutorialPage(navController) }
                     composable("detailPage/{scheduleSeq}") { backStackEntry ->
                         // 여기에서 DetailPage Composable을 호출하고, scheduleSeq 파라미터를 전달합니다.

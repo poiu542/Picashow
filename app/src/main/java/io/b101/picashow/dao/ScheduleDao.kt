@@ -1,6 +1,5 @@
 package io.b101.picashow.dao
 
-import android.util.Log
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy

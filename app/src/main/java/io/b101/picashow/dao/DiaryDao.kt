@@ -5,9 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import io.b101.picashow.entity.Diary
-import io.b101.picashow.entity.Schedule
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
 
 @Dao
 interface DiaryDao : BaseDao<Diary> {

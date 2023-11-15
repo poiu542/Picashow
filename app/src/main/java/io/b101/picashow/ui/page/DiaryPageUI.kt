@@ -27,7 +27,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,7 +61,6 @@ import io.b101.picashow.entity.Diary
 import io.b101.picashow.repository.DiaryRepository
 import io.b101.picashow.repository.ScheduleRepository
 import io.b101.picashow.repository.ThemeRepository
-import io.b101.picashow.scheduleWallpaperChange
 import io.b101.picashow.ui.theme.Purple40
 import io.b101.picashow.ui.theme.teal40
 import io.b101.picashow.util.await
@@ -81,7 +79,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 
@@ -105,7 +102,6 @@ fun DiaryPage() {
     val diaryViewModel = viewModel<DiaryViewModel>(
         factory = diaryViewModelFactory
     )
-    Log.d("다이아리 페이지 시작", "맞습니다")
     val scheduleDao = AppDatabase.getDatabase(context).scheduleDao()
     // 2. ScheduleDao 인스턴스를 사용하여 ScheduleRepository의 인스턴스를 생성합니다.
     val repository = ScheduleRepository(scheduleDao)
@@ -139,15 +135,11 @@ fun ImageCompo(diaryViewModel: DiaryViewModel, scheduleViewModel: ScheduleViewMo
         null
     }
 
-    Log.e("ImageCompo 전체 리스트", diaryList.toString())
-    Log.e("ImageCompo 한개 리스트", selectedDiary.toString())
-
     val today = LocalDate.now()
     val initialPage = (today.toEpochDay() - LocalDate.now().toEpochDay()).toInt() + 1000000
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = initialPage)
 
     LaunchedEffect(pagerState.currentPage) {
-        Log.e("페이지바뀜", pagerState.currentPage.toString())
         val date = LocalDate.now().plusDays(pagerState.currentPage.toLong() - 1000000L)
         diaryTitle.value = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         if(changeCheck.value) {
@@ -161,7 +153,6 @@ fun ImageCompo(diaryViewModel: DiaryViewModel, scheduleViewModel: ScheduleViewMo
         if (selectedDate != null) {
             diaryViewModel.getDiaryByDate(selectedDate.time)
         }
-        Log.d("무한 호출인가요? ={}", selectedDate.toString())
     }
 
     HorizontalPager(state = pagerState) { page ->
@@ -330,7 +321,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
 
     if (themeListState.value.isNotEmpty()) {
         randomKeyword = themeListState.value.random()
-        Log.d("ThemeListState", "Random Keyword: $randomKeyword")
     }
 
     Column(
@@ -432,7 +422,6 @@ fun TextPlaceHolder(viewModel: DiaryViewModel) {
 @Composable
 fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
 
-    Log.d("DiaryPage DateText 호출", "go2")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -457,8 +446,6 @@ fun DateText(selectedDate: String, onDateTextClicked: () -> Unit) {
 @Composable
 fun ShowDatePicker(diaryViewModel: DiaryViewModel, context: Context) {
 
-    Log.d("DiaryPage 삐카츄 호출", "go2")
-
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -469,7 +456,6 @@ fun ShowDatePicker(diaryViewModel: DiaryViewModel, context: Context) {
 
         DatePickerDialog(context, { _, mYear, mMonth, mDay ->
             val newSelectedDate = LocalDate.of(mYear, mMonth + 1, mDay)
-            Log.d("삐카츄 선택 날짜", newSelectedDate.toString())
             diaryTitle.value =
                 newSelectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             //TODO : 이거 수정 해야 됨

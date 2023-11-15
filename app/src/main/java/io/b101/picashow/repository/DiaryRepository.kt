@@ -1,11 +1,9 @@
 package io.b101.picashow.repository
 
-import android.util.Log
 import androidx.annotation.WorkerThread
 import io.b101.picashow.dao.DiaryDao
 import io.b101.picashow.entity.Diary
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
 
 class DiaryRepository(private val diaryDao: DiaryDao) {
     val allDiarys: Flow<List<Diary>> = diaryDao.getAll()

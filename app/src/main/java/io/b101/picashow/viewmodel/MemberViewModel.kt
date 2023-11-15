@@ -1,17 +1,15 @@
 package io.b101.picashow.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.b101.picashow.entity.Member
 import io.b101.picashow.repository.MemberRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 var please = mutableStateOf(false);
 val _myInfo = MutableLiveData<Member?>()
 class MemberViewModel(private val repository: MemberRepository) : ViewModel() {
@@ -27,7 +25,6 @@ class MemberViewModel(private val repository: MemberRepository) : ViewModel() {
             if(member == null) member = Member(1,false, null);
             // UI 업데이트는 메인 스레드에서 수행되어야 함
             withContext(Dispatchers.Main) {
-                Log.d("member 조회 in model", member.isTutorial.toString())
                 _myInfo.value = member
                 please.value = true
             }

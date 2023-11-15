@@ -50,6 +50,7 @@ import io.b101.picashow.scheduleWallpaperChange
 import io.b101.picashow.ui.components.CustomAlertDialog
 import io.b101.picashow.ui.components.CustomTimePicker
 import io.b101.picashow.ui.components.GrayDivider
+import io.b101.picashow.ui.components.showDatePicker
 import io.b101.picashow.ui.theme.PlaceDefault
 import io.b101.picashow.ui.theme.TextFieldCursor
 import io.b101.picashow.util.await
@@ -61,13 +62,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
 
+enum class TimePickerType {
+    START, END
+}
+
 @Composable
-fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
+fun DetailScheduleUI(navController : NavController, scheduleSeq: String?) {
+    var scheduleSeq = scheduleSeq
+    if(scheduleSeq!! == "0") {
+        scheduleSeq = null
+    }
 
     // 의존성 주입
     val context = LocalContext.current
@@ -114,34 +123,38 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
 
     LaunchedEffect(scheduleSeq) {
         // 랜덤한 keyWord를 선택
-        scheduleViewModel.getScheduleById(scheduleSeq) { scheduleDetails ->
-            // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
-            // 예를 들면:
-            scheduleDetails?.let {
-                scheduleName.value = it.scheduleName ?: ""
-                content.value = it.content ?: ""
-                imageURL.value = it.wallpaperUrl ?: ""
+        if(scheduleSeq != null) {
+            scheduleViewModel.getScheduleById(scheduleSeq!!) { scheduleDetails ->
+                // 여기서 UI 상태를 업데이트하는 코드를 실행합니다.
+                // 예를 들면:
+                scheduleDetails?.let {
+                    scheduleName.value = it.scheduleName ?: ""
+                    content.value = it.content ?: ""
+                    imageURL.value = it.wallpaperUrl ?: ""
 
-                // 날짜 및 시간 설정
-                it.startDate?.let { startDate ->
-                    // Date 객체를 LocalDateTime으로 변환
-                    val startDateTime = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
-                    selectedStartDate.value = startDateTime
-                    selectedStartHour.value = startDateTime.hour
-                    selectedStartMinute.value = startDateTime.minute
+                    // 날짜 및 시간 설정
+                    it.startDate?.let { startDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val startDateTime =
+                            LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault())
+                        selectedStartDate.value = startDateTime
+                        selectedStartHour.intValue = startDateTime.hour
+                        selectedStartMinute.intValue = startDateTime.minute
+                    }
+
+                    it.endDate?.let { endDate ->
+                        // Date 객체를 LocalDateTime으로 변환
+                        val endDateTime =
+                            LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
+                        selectedEndDate.value = endDateTime
+                        selectedEndHour.intValue = endDateTime.hour
+                        selectedEndMinute.intValue = endDateTime.minute
+                    }
                 }
 
-                it.endDate?.let { endDate ->
-                    // Date 객체를 LocalDateTime으로 변환
-                    val endDateTime = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault())
-                    selectedEndDate.value = endDateTime
-                    selectedEndHour.value = endDateTime.hour
-                    selectedEndMinute.value = endDateTime.minute
-                }
+                // 데이터가 로드되었음을 표시
+                isDataLoaded = true
             }
-
-            // 데이터가 로드되었음을 표시
-            isDataLoaded = true
         }
     }
 
@@ -210,7 +223,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                         text = "${selectedStartDate.value.monthValue} / " +
                                 "${selectedStartDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedStartDate.value.dayOfWeek)})",
-                        fontSize = 20.sp
+                        fontSize = 17.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -236,7 +249,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                         text = "${selectedEndDate.value.monthValue} / " +
                                 "${selectedEndDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedEndDate.value.dayOfWeek)})",
-                        fontSize = 21.sp
+                        fontSize = 17.sp
                     )
                 }
             }
@@ -260,7 +273,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     Text(
                         text = "${selectedStartHour.intValue.toString().padStart(2, '0')} : " +
                                 selectedStartMinute.intValue.toString().padStart(2, '0'),
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         color = Color.White,
                     )
                 }
@@ -279,7 +292,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     Text(
                         text = "${selectedEndHour.value.toString().padStart(2, '0')} : " +
                                 selectedEndMinute.value.toString().padStart(2, '0'),
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         color = Color.White,
                     )
                 }
@@ -400,9 +413,14 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                         wallpaperUrl = null,
                         content = content.value,
                     )
-                    // 일정 Room 수정하기 - imageURL은 없음
-                    scheduleViewModel.updateSchedule(scheduleSeq, schedule)
+
                     CoroutineScope(Dispatchers.Main).launch {
+                        // 일정 Room 수정하기 - imageURL은 없음
+                        if(scheduleSeq == null) {
+                            scheduleSeq = scheduleViewModel.saveSchedule(schedule).await().toString()
+                        } else {
+                            scheduleViewModel.updateSchedule(scheduleSeq!!, schedule)
+                        }
                         // 일정 추가
                         withContext(Dispatchers.IO) {
                             try {
@@ -411,7 +429,6 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                                     // 성공적으로 URL을 받아옵니다.
                                     val imageUrl = response.body().toString()
                                     // 이미지 URL이 성공적으로 받아졌다면, 업데이트 로직 수행
-                                    Log.e("Seq", scheduleSeq)
                                     val intent = Intent(context, UpdateImageService::class.java).apply {
                                         putExtra("scheduleSeq", scheduleSeq)
                                         putExtra("newImgUrl", imageUrl)
@@ -463,4 +480,22 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
         }
 
     }
+}
+
+fun getDayOfWeek(day: DayOfWeek): String {
+    return when (day) {
+        DayOfWeek.MONDAY -> "Mon"
+        DayOfWeek.TUESDAY -> "Tue"
+        DayOfWeek.WEDNESDAY -> "Wed"
+        DayOfWeek.THURSDAY -> "Thu"
+        DayOfWeek.FRIDAY -> "Fri"
+        DayOfWeek.SATURDAY -> "Sat"
+        DayOfWeek.SUNDAY -> "Sun"
+    }
+}
+
+// 선택한 날짜, 시간을 Date 형식으로 바꾸기
+fun combineDateTime(date: LocalDateTime, hour: Int, minute: Int): Date {
+    val combinedDateTime = date.withHour(hour).withMinute(minute)
+    return Date.from(combinedDateTime.atZone(ZoneId.systemDefault()).toInstant())
 }

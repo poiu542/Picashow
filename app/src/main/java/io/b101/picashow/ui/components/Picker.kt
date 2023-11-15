@@ -2,6 +2,7 @@ package io.b101.picashow.ui.components
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalDateTime
 import java.util.Calendar
 
 @Composable
@@ -158,4 +160,18 @@ fun CustomTimePicker(
             }
         }
     }
+}
+
+fun showDatePicker(context: Context, dateSetListener: (Int, Int, Int) -> Unit) {
+    val currentDateTime = LocalDateTime.now()
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            dateSetListener(year, month + 1, dayOfMonth)
+        },
+        currentDateTime.year,
+        currentDateTime.monthValue - 1,
+        currentDateTime.dayOfMonth
+    )
+    datePickerDialog.show()
 }

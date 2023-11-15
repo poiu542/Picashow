@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import io.b101.picashow.converter.Converters
-import java.util.Date
 
 @Entity(tableName = "member")
 @TypeConverters(Converters::class)

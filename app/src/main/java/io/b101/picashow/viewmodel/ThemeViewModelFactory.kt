@@ -2,7 +2,6 @@ package io.b101.picashow.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.b101.picashow.repository.DiaryRepository
 import io.b101.picashow.repository.ThemeRepository
 
 class ThemeViewModelFactory(

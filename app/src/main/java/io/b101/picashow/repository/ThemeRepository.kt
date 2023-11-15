@@ -1,9 +1,7 @@
 package io.b101.picashow.repository
 
 import androidx.annotation.WorkerThread
-import io.b101.picashow.dao.DiaryDao
 import io.b101.picashow.dao.ThemeDao
-import io.b101.picashow.entity.Diary
 import io.b101.picashow.entity.Theme
 import kotlinx.coroutines.flow.Flow
 

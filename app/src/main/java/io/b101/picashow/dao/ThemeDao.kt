@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import io.b101.picashow.entity.Theme
-import io.b101.picashow.entity.Wallpaper
 import kotlinx.coroutines.flow.Flow
 
 @Dao

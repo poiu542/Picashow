@@ -2,7 +2,6 @@ package io.b101.picashow.ui.page
 
 import android.annotation.SuppressLint
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -45,24 +44,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import io.b101.picashow.database.AppDatabase
 import io.b101.picashow.entity.Member
 import io.b101.picashow.entity.Theme
-import io.b101.picashow.tutorialStateCheck
 import io.b101.picashow.repository.MemberRepository
 import io.b101.picashow.repository.ThemeRepository
+import io.b101.picashow.tutorialStateCheck
 import io.b101.picashow.ui.theme.teal40
 import io.b101.picashow.viewmodel.MemberViewModel
 import io.b101.picashow.viewmodel.MemberViewModelFactory
 import io.b101.picashow.viewmodel.ThemeViewModel
 import io.b101.picashow.viewmodel.ThemeViewModelFactory
-import io.b101.picashow.viewmodel._myInfo
 import kotlinx.coroutines.delay
-import androidx.compose.ui.window.Dialog as Dialog
 
 var tutorialImageUrls = mutableListOf(
     arrayOf(
@@ -170,7 +167,6 @@ fun mainTutorial(navController : NavController) {
 
                         var member = Member(1, true, deviceUniqueId)
                         memberViewModel.saveMember(member)
-                        Log.d("member = {}", _myInfo.value?.isTutorial.toString())
                     }
                     navController.navigate("secondPage")
                 }

@@ -2,7 +2,6 @@ package io.b101.picashow.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.b101.picashow.repository.ScheduleRepository
 import io.b101.picashow.repository.WallpaperRepository
 
 class WallpaperViewModelFactory(

@@ -1,14 +1,10 @@
 package io.b101.picashow.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import io.b101.picashow.entity.Member
 import io.b101.picashow.entity.Schedule
-import io.b101.picashow.repository.DiaryRepository
 import io.b101.picashow.repository.ScheduleRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
