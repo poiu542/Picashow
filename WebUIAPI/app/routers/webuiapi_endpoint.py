@@ -10,6 +10,7 @@ import os
 import logging
 import openai
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from urllib import request
 
 router = APIRouter()
@@ -121,7 +122,7 @@ def sendAPItoDallE3(requestBody: ImagePrompt.ImagePrompt):
         image_bytes = BytesIO(res)
         image_url = s3.upload(image_bytes, s3.connection(), theme)
 
-        return HTTPException(status_code=200, detail=image_url)
+        return JSONResponse(content=image_url, status_code=200)
     except Exception as e:
         logging.warning(e)
         return HTTPException(status_code=503, detail="Failed to generate image")
