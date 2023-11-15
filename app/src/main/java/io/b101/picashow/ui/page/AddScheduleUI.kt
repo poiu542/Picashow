@@ -180,7 +180,7 @@ fun AddSchedulePage(navController : NavController) {
                         text = "${selectedStartDate.value.monthValue} / " +
                                 "${selectedStartDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedStartDate.value.dayOfWeek)})",
-                        fontSize = 20.sp
+                        fontSize = 17.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -206,7 +206,7 @@ fun AddSchedulePage(navController : NavController) {
                         text = "${selectedEndDate.value.monthValue} / " +
                                 "${selectedEndDate.value.dayOfMonth} " +
                                 "(${getDayOfWeek(selectedEndDate.value.dayOfWeek)})",
-                        fontSize = 21.sp
+                        fontSize = 17.sp
                     )
                 }
             }

@@ -125,7 +125,6 @@ fun MainScreen(navController: NavHostController) {
                                    modifier = Modifier.clickable {
                                        textTutorialDone.value = true
                                        navController.navigate("tutorialPage")
-                                       themeViewModel.deleteAllThemes()
                                    }
                                )
                            }

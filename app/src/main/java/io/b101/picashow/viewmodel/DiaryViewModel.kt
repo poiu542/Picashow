@@ -53,9 +53,7 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
         viewModelScope.launch {
             repository.getDiaryByDate(selectedDate).collect {
                 _diaryList.postValue(it)
-                Log.d("getDiaryByDate 호출", _diaryList.toString())
             }
-            Log.d("뷰모델에서", _diaryList.toString())
         }
     }
 }

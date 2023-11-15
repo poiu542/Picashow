@@ -405,13 +405,6 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                     )
                     // 일정 Room 수정하기 - imageURL은 없음
                     scheduleViewModel.updateSchedule(scheduleSeq, schedule)
-                    /* TODO
-                        1. FastAPI 요청 보내서 이미지 URL 받기
-                        2. 받은 URL schedule 테이블에 update로 넣기
-                        3. 그 URL 기반으로 이미지 배경화면 바뀜 예약하기
-                        * 주의사항
-                        - 사용자가 앱을 종료하면? - background에서 돌려야 할 듯
-                    */
                     CoroutineScope(Dispatchers.Main).launch {
                         // 일정 추가
                         withContext(Dispatchers.IO) {
@@ -425,6 +418,7 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String) {
                                     val intent = Intent(context, UpdateImageService::class.java).apply {
                                         putExtra("scheduleSeq", scheduleSeq)
                                         putExtra("newImgUrl", imageUrl)
+                                        putExtra("kind", "schedulePage")
                                     }
                                     context.startService(intent)
                                     scheduleWallpaperChange(context, startDate, imageUrl)

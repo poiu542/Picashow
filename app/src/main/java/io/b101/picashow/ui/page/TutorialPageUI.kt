@@ -155,6 +155,7 @@ fun mainTutorial(navController : NavController) {
                         .show()
                     else {
                         tutorialStateCheck.value = true
+                        themeViewModel.deleteAllThemes()
 
                         var themeList = mutableStateListOf<Theme>()
                         for (i in selectedImageIndices) {

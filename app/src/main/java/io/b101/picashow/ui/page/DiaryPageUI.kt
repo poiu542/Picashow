@@ -142,8 +142,6 @@ fun ImageCompo(diaryViewModel: DiaryViewModel, scheduleViewModel: ScheduleViewMo
     Log.e("ImageCompo 전체 리스트", diaryList.toString())
     Log.e("ImageCompo 한개 리스트", selectedDiary.toString())
 
-    val userChangedTitle = remember { mutableStateOf(false) }
-
     val today = LocalDate.now()
     val initialPage = (today.toEpochDay() - LocalDate.now().toEpochDay()).toInt() + 1000000
     val pagerState = rememberPagerState(pageCount = 2000000, initialPage = initialPage)
@@ -203,9 +201,9 @@ fun ImageCompo(diaryViewModel: DiaryViewModel, scheduleViewModel: ScheduleViewMo
                     }
 
                     if (!diaryList.isNullOrEmpty()) {
-                        DiaryText(selectedDiary!!, diaryViewModel, userChangedTitle)
+                        DiaryText(selectedDiary!!, diaryViewModel)
                     } else {
-                        TextPlaceHolder(diaryViewModel, userChangedTitle)
+                        TextPlaceHolder(diaryViewModel)
                     }
                 }
             }
@@ -215,7 +213,7 @@ fun ImageCompo(diaryViewModel: DiaryViewModel, scheduleViewModel: ScheduleViewMo
 
 
 @Composable
-fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
+fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel) {
     var isEditing by remember { mutableStateOf(false) }
     var editText by remember(diary) { mutableStateOf(diary.content) }
     val coroutineScope = rememberCoroutineScope()
@@ -316,7 +314,7 @@ fun DiaryText(diary: Diary, diaryViewModel: DiaryViewModel, userChangedTitle: Mu
 }
 
 @Composable
-fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Boolean>) {
+fun TextPlaceHolder(viewModel: DiaryViewModel) {
     val context = LocalContext.current
 
     val selectedDate = LocalDate.parse(diaryTitle.value, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
@@ -432,20 +430,7 @@ fun TextPlaceHolder(viewModel: DiaryViewModel, userChangedTitle: MutableState<Bo
                     .padding(10.dp),
                 colors = ButtonDefaults.buttonColors(teal40)
             ) {
-                Text(text = "Save", fontSize = 11.sp)
-            }
-
-            Button(
-                onClick = {
-                    // Image Create 버튼 클릭 시 동작하는 로직을 구현하세요.
-                    // 이미지 생성 로직을 추가하면 됩니다.
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(10.dp),
-                colors = ButtonDefaults.buttonColors(teal40)
-            ) {
-                Text(text = "Image Create", fontSize = 11.sp)
+                Text(text = "Save & Image Create", fontSize = 14.sp)
             }
         }
     }
