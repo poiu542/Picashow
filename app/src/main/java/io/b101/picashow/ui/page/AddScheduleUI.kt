@@ -1,6 +1,5 @@
 package io.b101.picashow.ui.page
 
-
 //import android.annotation.SuppressLint
 //import android.content.Intent
 //import android.util.Log

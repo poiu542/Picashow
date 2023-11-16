@@ -37,7 +37,6 @@ class WallpaperChangeWorker(appContext: Context, workerParams: WorkerParameters)
                         } else {
                             wallpaperManager.setBitmap(resource)
                         }
-                        Log.d("바뀌어요","바탕화면 변경")
                     } catch (e: IOException) {
                         e.printStackTrace()
                     }

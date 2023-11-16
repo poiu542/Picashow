@@ -120,7 +120,6 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String?) {
         }
     }
 
-
     LaunchedEffect(scheduleSeq) {
         // 랜덤한 keyWord를 선택
         if(scheduleSeq != null) {
@@ -290,8 +289,8 @@ fun DetailScheduleUI(navController : NavController, scheduleSeq: String?) {
                     )
                 ) {
                     Text(
-                        text = "${selectedEndHour.value.toString().padStart(2, '0')} : " +
-                                selectedEndMinute.value.toString().padStart(2, '0'),
+                        text = "${selectedEndHour.intValue.toString().padStart(2, '0')} : " +
+                                selectedEndMinute.intValue.toString().padStart(2, '0'),
                         fontSize = 18.sp,
                         color = Color.White,
                     )
